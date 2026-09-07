@@ -49,6 +49,10 @@ async function main() {
     user: config.database.user,
     password: config.database.password,
     database: config.database.name,
+    // Igual que el pool de la aplicacion (config/database.js): las bases
+    // alojadas (Render, Railway, Neon) rechazan la conexion sin SSL, y sus
+    // certificados no los firma una autoridad que Node reconozca por defecto.
+    ssl: config.database.ssl ? { rejectUnauthorized: false } : false,
   });
 
   console.log('');
