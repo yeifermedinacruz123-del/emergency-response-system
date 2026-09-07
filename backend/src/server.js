@@ -22,7 +22,6 @@ const logger = require('./config/logger');
 const { checkConnection, closePool } = require('./database');
 const { createSocketServer } = require('./sockets');
 const pushService = require('./services/push.service');
-const { loadCert, certCoversAddress } = require('../scripts/make-cert');
 
 const server = http.createServer(app);
 
@@ -40,6 +39,17 @@ const io = createSocketServer(server);
  * arranca normalmente solo con HTTP.
  */
 let httpsServer = null;
+
+/*
+ * Las utilidades del certificado se cargan solo si HTTPS_ENABLED esta activo.
+ *
+ * No es una optimizacion: make-cert.js depende de `selfsigned`, que es una
+ * dependencia de DESARROLLO. En un despliegue de produccion (Render, Railway)
+ * no se instala, y el HTTPS lo termina el propio proveedor, asi que este
+ * servidor solo habla HTTP. Con el require arriba del todo, el servidor no
+ * arrancaba alli: moria con MODULE_NOT_FOUND antes de escuchar el puerto.
+ */
+let certTools = null;
 
 
 /**
@@ -103,7 +113,7 @@ function printBanner(databaseStatus) {
       logger.raw('    es de confianza: Configuracion avanzada -> Continuar.');
       logger.raw('    Es lo normal, el certificado lo firma este proyecto.');
 
-      if (!certCoversAddress(lanAddress)) {
+      if (certTools && !certTools.certCoversAddress(lanAddress)) {
         logger.raw('');
         logger.raw(`    AVISO: el certificado no cubre ${lanAddress} (cambiaste de red).`);
         logger.raw('           Regeneralo con:  npm run cert');
@@ -140,7 +150,8 @@ async function start() {
 
   // 4. Servidor HTTPS (opcional): mismo Express y mismo Socket.IO, otro puerto
   if (config.server.httpsEnabled) {
-    const credentials = loadCert();
+    certTools = require('../scripts/make-cert');
+    const credentials = certTools.loadCert();
 
     if (credentials) {
       httpsServer = https.createServer(credentials, app);
