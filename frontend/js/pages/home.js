@@ -197,7 +197,10 @@ async function runChecks() {
   $('#status-hint').textContent = !backendOk
     ? 'El servidor no responde. Ejecuta "npm run dev" dentro de la carpeta backend.'
     : pendientes.length === 0
-      ? 'Sistema completo: las 18 fases estan cerradas. Entra en http://localhost:4000/login.html'
+      // El origen se toma de la propia pagina: en un despliegue publico la
+      // direccion no es localhost, y ese enlace mandaba al visitante a su
+      // propia maquina.
+      ? `Sistema completo: las 18 fases estan cerradas. Entra en ${window.location.origin}/login.html`
       : `Entorno listo. Continua con la Fase ${pendientes[0].n}: ${pendientes[0].name.toLowerCase()}.`;
 
   button.classList.remove('is-loading');
