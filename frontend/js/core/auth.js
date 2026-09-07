@@ -116,19 +116,28 @@ export async function refreshProfile() {
  * ------------------------------------------------------------------------ */
 
 /**
- * ¿Se esta viendo en un telefono?
+ * ¿Se esta viendo en un dispositivo de mano (telefono o tablet)?
  *
- * Se decide por el ancho de la ventana y no por el user agent: el user agent
- * se falsea, cambia con cada version del navegador y hay que mantener listas
- * de cadenas. El ancho es lo que de verdad determina que interfaz cabe, que es
- * justo lo que se quiere saber aqui.
+ * Se decide por las capacidades del dispositivo y no por el user agent: el
+ * user agent se falsea, cambia con cada version del navegador y hay que
+ * mantener listas de cadenas.
  *
- * El umbral son los mismos 720 px que ya usan `css/layout.css` y
- * `css/mobile.css` para cambiar de disposicion, para que no haya dos ideas
- * distintas de "esto es un telefono" en el mismo proyecto.
+ * Son dos condiciones, y hace falta cualquiera de las dos:
+ *
+ *   max-width: 720px  Los mismos 720 px que ya usan `css/layout.css` y
+ *                     `css/mobile.css` para cambiar de disposicion, para que no
+ *                     haya dos ideas distintas de "esto es un telefono" en el
+ *                     mismo proyecto.
+ *
+ *   pointer: coarse   El ancho solo no basta. Una tablet (iPad, Android
+ *                     grande) pasa de 720 px y aterrizaba en el panel de
+ *                     escritorio, sin boton SOS ni camara, aunque se maneje con
+ *                     el dedo igual que un telefono. Esta consulta describe el
+ *                     puntero PRINCIPAL, asi que un portatil con pantalla
+ *                     tactil y raton sigue contando como escritorio.
  */
 function isHandheld() {
-  return window.matchMedia('(max-width: 720px)').matches;
+  return window.matchMedia('(max-width: 720px), (pointer: coarse)').matches;
 }
 
 /**
