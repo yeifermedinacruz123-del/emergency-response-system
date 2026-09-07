@@ -305,7 +305,19 @@ async function forgotPassword(email, req) {
     const origin = `${req.protocol}://${req.get('host')}`;
     const link = `${origin}/reset-password.html?token=${rawToken}`;
 
-    await mailerService.sendMail({
+    /*
+     * No se espera al envio, igual que en el aviso a los contactos de
+     * confianza al activar un SOS.
+     *
+     * El enlace ya esta guardado en la base de datos: lo unico que falta es
+     * entregarlo, y eso puede tardar segundos o fallar sin que la persona que
+     * pulso el boton tenga nada que hacer al respecto. Esperando, un servidor
+     * de correo lento dejaba la peticion colgada dos minutos.
+     *
+     * `sendMail` nunca lanza (registra el fallo y devuelve el motivo), asi que
+     * no hace falta un catch aqui.
+     */
+    mailerService.sendMail({
       to: user.email,
       subject: 'Recupera tu contrasena · Emergency Response System',
       text:

@@ -25,6 +25,18 @@ function getTransporter() {
       port: config.mail.port,
       secure: config.mail.secure,
       auth: config.mail.user ? { user: config.mail.user, pass: config.mail.password } : undefined,
+
+      /*
+       * Sin estos limites, nodemailer hereda el plazo del sistema operativo:
+       * si los paquetes al puerto SMTP se descartan en silencio (muchos
+       * alojamientos bloquean el correo saliente para evitar el spam), la
+       * llamada se queda esperando unos DOS MINUTOS antes de rendirse.
+       * Diez segundos bastan para un servidor que responde, y convierten un
+       * bloqueo de red en un error registrado en vez de una peticion colgada.
+       */
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
 
@@ -44,15 +56,22 @@ function getTransporter() {
  * @param {string} [options.html]
  */
 async function sendMail({ to, subject, text, html }) {
-  const client = getTransporter();
-
-  if (!client) {
-    logger.info(`[correo simulado, sin SMTP_HOST] Para: ${to} · Asunto: ${subject}`);
-    logger.info(text);
-    return { sent: false, simulated: true };
-  }
-
+  /*
+   * Todo va dentro del try, incluida la creacion del transportador: quien
+   * llama puede no esperar esta promesa (la recuperacion de contrasena y el
+   * aviso de SOS no lo hacen), y una promesa rechazada sin capturar termina el
+   * proceso en Node. Esta funcion informa del fallo con su valor de retorno,
+   * nunca lanzando.
+   */
   try {
+    const client = getTransporter();
+
+    if (!client) {
+      logger.info(`[correo simulado, sin SMTP_HOST] Para: ${to} · Asunto: ${subject}`);
+      logger.info(text);
+      return { sent: false, simulated: true };
+    }
+
     await client.sendMail({ from: config.mail.fromAddress, to, subject, text, html });
     return { sent: true, simulated: false };
   } catch (error) {
