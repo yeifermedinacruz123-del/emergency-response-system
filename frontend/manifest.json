@@ -1,0 +1,68 @@
+{
+  "name": "Emergency Response System",
+  "short_name": "ERS",
+  "description": "Reporta emergencias con tu ubicacion y sigue su atencion en tiempo real.",
+  "lang": "es-CO",
+  "dir": "ltr",
+
+  "start_url": "/app/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+
+  "theme_color": "#101a2e",
+  "background_color": "#101a2e",
+
+  "categories": ["utilities", "medical", "government"],
+
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Activar SOS",
+      "short_name": "SOS",
+      "description": "Enviar una emergencia critica con tu ubicacion",
+      "url": "/app/index.html?action=sos",
+      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Reportar emergencia",
+      "short_name": "Reportar",
+      "description": "Describir una emergencia y adjuntar fotografias",
+      "url": "/app/report.html",
+      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mis reportes",
+      "short_name": "Reportes",
+      "description": "Ver el estado de las emergencias que reportaste",
+      "url": "/app/my-emergencies.html",
+      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

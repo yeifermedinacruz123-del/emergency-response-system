@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Reporta emergencias con tu ubicacion">
+  <meta name="theme-color" content="#101a2e">
+
+  <title>ERS · Inicio</title>
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ERS">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/mobile.css">
+</head>
+<body class="app-mobile">
+
+  <header class="m-header">
+    <div>
+      <p class="m-header__title" id="greeting">Hola</p>
+      <p class="m-header__subtitle">Emergency Response System</p>
+    </div>
+    <div class="m-header__actions">
+      <button type="button" class="m-header__btn" id="btn-logout" aria-label="Cerrar sesion">
+        <span aria-hidden="true">⏻</span>
+      </button>
+    </div>
+  </header>
+
+  <p class="offline-banner" id="offline-banner">
+    <span aria-hidden="true">⚠</span> Sin conexion
+  </p>
+
+  <div class="install-banner" id="install-banner">
+    <span aria-hidden="true">📲</span>
+    <span class="install-banner__body">Instala la aplicacion para acceder mas rapido</span>
+    <button type="button" class="btn btn--primary btn--sm" data-install>Instalar</button>
+    <button type="button" class="btn-icon" data-dismiss aria-label="Descartar">✕</button>
+  </div>
+
+  <main class="m-main">
+
+    <!-- ============ Boton SOS ============ -->
+    <section class="sos-zone" aria-labelledby="sos-title">
+      <h1 id="sos-title" class="sr-only">Boton de emergencia</h1>
+
+      <button type="button" class="sos-button" id="btn-sos"
+              aria-describedby="sos-note">
+        <span class="sos-button__label">SOS</span>
+        <span class="sos-button__hint">Mantener pulsado</span>
+      </button>
+
+      <p class="sos-note" id="sos-note">
+        Mantén pulsado <strong>2 segundos</strong> para enviar una alerta critica
+        con tu ubicacion. El centro de control la recibe al instante.
+      </p>
+    </section>
+
+    <!-- ============ Acciones ============ -->
+    <section class="m-section">
+      <h2 class="m-section__title">Que necesitas hacer</h2>
+      <div class="m-actions">
+        <a href="/app/report.html" class="m-action">
+          <span class="m-action__icon" aria-hidden="true">📝</span>
+          <span class="m-action__label">Reportar emergencia</span>
+          <span class="m-action__hint">Con fotos y ubicacion</span>
+        </a>
+        <a href="/app/my-emergencies.html" class="m-action">
+          <span class="m-action__icon" aria-hidden="true">📋</span>
+          <span class="m-action__label">Mis reportes</span>
+          <span class="m-action__hint" id="reports-count">Ver estado</span>
+        </a>
+        <a href="/app/contacts.html" class="m-action">
+          <span class="m-action__icon" aria-hidden="true">👥</span>
+          <span class="m-action__label">Contactos de confianza</span>
+          <span class="m-action__hint">Se avisan en un SOS</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ============ Ultimo reporte ============ -->
+    <section class="m-section" id="last-section" hidden>
+      <h2 class="m-section__title">Tu ultimo reporte</h2>
+      <div id="last-emergency"></div>
+    </section>
+
+    <!-- ============ Alerta sismica automatica ============ -->
+    <section class="m-section" id="seismic-section" hidden>
+      <div class="card" style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);">
+        <div>
+          <p style="font-weight: var(--weight-semibold);">🌍 Alerta sismica automatica</p>
+          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">
+            Usa el sensor de movimiento del telefono para avisar solo. Solo funciona con la app abierta.
+          </p>
+        </div>
+        <label class="checkbox" style="flex-shrink: 0;">
+          <input type="checkbox" id="seismic-toggle">
+        </label>
+      </div>
+    </section>
+
+    <!-- ============ Linea de emergencias ============ -->
+    <section class="m-section">
+      <div class="card" style="text-align: center;">
+        <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.5;">
+          Si la vida de alguien corre peligro inmediato, llama tambien a la
+          linea nacional de emergencias.
+        </p>
+        <a href="tel:123" class="btn btn--danger btn--block" style="margin-top: var(--space-3);">
+          <span class="btn__icon" aria-hidden="true">📞</span> Llamar al 123
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="/js/mobile/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Contactos de confianza">
+  <meta name="theme-color" content="#101a2e">
+
+  <title>ERS · Contactos de confianza</title>
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/mobile.css">
+</head>
+<body class="app-mobile">
+
+  <header class="m-header">
+    <div class="m-header__actions" style="margin-right: var(--space-2);">
+      <button type="button" class="m-header__btn" id="btn-back" aria-label="Volver">
+        <span aria-hidden="true">←</span>
+      </button>
+    </div>
+    <div>
+      <p class="m-header__title">Contactos de confianza</p>
+      <p class="m-header__subtitle">Se avisan por correo si activas el SOS</p>
+    </div>
+  </header>
+
+  <p class="offline-banner" id="offline-banner">
+    <span aria-hidden="true">⚠</span> Sin conexion
+  </p>
+
+  <main class="m-main">
+
+    <div class="card" style="margin-bottom: var(--space-5);">
+      <p style="font-size: var(--text-sm); color: var(--text-muted); line-height: 1.5;">
+        Cuando actives el boton SOS, cada contacto con correo recibira un aviso con tu nombre,
+        tu telefono y la ubicacion. Maximo 3 contactos.
+      </p>
+    </div>
+
+    <div id="list"></div>
+
+    <section class="m-section" id="form-section">
+      <h2 class="m-section__title">Agregar contacto</h2>
+      <form class="form" id="contact-form" novalidate>
+        <div class="field">
+          <label class="field__label" for="fullName">Nombre <span class="required">*</span></label>
+          <input class="input" id="fullName" name="fullName" required placeholder="Nombre completo">
+        </div>
+        <div class="field">
+          <label class="field__label" for="email">Correo <span class="required">*</span></label>
+          <input class="input" type="email" id="email" name="email" required
+                 placeholder="correo@ejemplo.com">
+        </div>
+        <div class="field">
+          <label class="field__label" for="phone">Telefono</label>
+          <input class="input" type="tel" id="phone" name="phone" placeholder="Opcional">
+        </div>
+        <button type="submit" class="btn btn--primary btn--block" id="btn-submit">
+          Agregar contacto
+        </button>
+      </form>
+    </section>
+
+  </main>
+
+  <script type="module" src="/js/mobile/contacts.js"></script>
+</body>
+</html>

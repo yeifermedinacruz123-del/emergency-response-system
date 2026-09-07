@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mapa del centro de control de emergencias">
+  <meta name="theme-color" content="#101a2e">
+  <title>Mapa · Emergency Response System</title>
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <!-- Leaflet alojado en el propio proyecto: sin dependencia de un CDN -->
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/tables.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/maps.css">
+
+  <!-- Leaflet debe estar cargado antes que el modulo de la pagina -->
+  <script src="/vendor/leaflet/leaflet.js" defer></script>
+  <script src="/vendor/leaflet/leaflet-heat.js" defer></script>
+</head>
+<body>
+
+  <div class="app-shell">
+    <main class="app-main">
+      <div class="page">
+
+        <div class="map-layout">
+
+          <!-- ============ Mapa ============ -->
+          <section class="map-panel" aria-label="Mapa de emergencias">
+            <div id="map" role="application" aria-label="Mapa de Villavicencio con las emergencias activas"></div>
+            <p class="map-badge" id="map-badge">Cargando…</p>
+          </section>
+
+          <!-- ============ Panel lateral ============ -->
+          <div class="stack" style="gap: var(--space-5);">
+
+            <section class="panel" aria-labelledby="capas-title">
+              <div class="panel__head">
+                <h2 id="capas-title" class="panel__title">Capas</h2>
+              </div>
+
+              <div class="form">
+                <label class="checkbox">
+                  <input type="checkbox" id="layer-emergencies" checked>
+                  Emergencias
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox" id="layer-units" checked>
+                  Unidades de personal
+                </label>
+                <label class="checkbox">
+                  <input type="checkbox" id="layer-heatmap">
+                  Mapa de calor (historico)
+                </label>
+              </div>
+
+              <div class="filters" style="padding: var(--space-4) 0 0; border: none; background: none;">
+                <div class="field" style="min-width: 100%;">
+                  <label class="field__label" for="f-status">Estado</label>
+                  <select class="select select--sm" id="f-status">
+                    <option value="">Solo activas (pendiente y en proceso)</option>
+                    <option value="PENDIENTE">Pendientes</option>
+                    <option value="EN_PROCESO">En proceso</option>
+                    <option value="all">Todas, incluidas las cerradas</option>
+                  </select>
+                </div>
+
+                <div class="field" style="min-width: 100%;">
+                  <label class="field__label" for="f-type">Tipo</label>
+                  <select class="select select--sm" id="f-type">
+                    <option value="">Todos</option>
+                  </select>
+                </div>
+
+                <div class="field" style="min-width: 100%;">
+                  <label class="field__label" for="f-sos">SOS</label>
+                  <select class="select select--sm" id="f-sos">
+                    <option value="">Todas</option>
+                    <option value="true">Solo SOS</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form__actions" style="justify-content: space-between;">
+                <button type="button" class="btn btn--ghost btn--sm" id="btn-fit">Ver todo</button>
+                <button type="button" class="btn btn--ghost btn--sm" id="btn-refresh">
+                  <span class="btn__icon" aria-hidden="true">⟳</span> Actualizar
+                </button>
+              </div>
+            </section>
+
+            <section class="panel" aria-labelledby="leyenda-title">
+              <div class="panel__head">
+                <h2 id="leyenda-title" class="panel__title">Leyenda</h2>
+              </div>
+
+              <p class="field__label" style="margin-bottom: var(--space-2);">Emergencias · por prioridad</p>
+              <div class="map-legend" style="margin-bottom: var(--space-5);">
+                <span class="map-legend__item">
+                  <span class="map-legend__swatch" style="background: var(--priority-critica)"></span> Critica
+                </span>
+                <span class="map-legend__item">
+                  <span class="map-legend__swatch" style="background: var(--priority-alta)"></span> Alta
+                </span>
+                <span class="map-legend__item">
+                  <span class="map-legend__swatch" style="background: var(--priority-media)"></span> Media
+                </span>
+                <span class="map-legend__item">
+                  <span class="map-legend__swatch" style="background: var(--priority-baja)"></span> Baja
+                </span>
+              </div>
+
+              <p class="field__label" style="margin-bottom: var(--space-2);">Unidades · por disponibilidad</p>
+              <div class="map-legend">
+                <span class="map-legend__item">
+                  <span class="map-legend__swatch map-legend__swatch--round" style="background: var(--success)"></span> Disponible
+                </span>
+                <span class="map-legend__item">
+                  <span class="map-legend__swatch map-legend__swatch--round" style="background: var(--warning)"></span> Ocupada
+                </span>
+                <span class="map-legend__item">
+                  <span class="map-legend__swatch map-legend__swatch--round" style="background: var(--text-muted)"></span> Fuera de servicio
+                </span>
+              </div>
+
+              <p class="panel__hint">
+                El simbolo del marcador indica el tipo de emergencia. Las SOS
+                llevan un anillo pulsante y se dibujan por encima del resto.
+              </p>
+            </section>
+
+            <section class="panel panel--flush" aria-labelledby="lista-title">
+              <div class="panel__head">
+                <h2 id="lista-title" class="panel__title">En el mapa</h2>
+              </div>
+              <div class="data-list" id="map-list"></div>
+            </section>
+
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/pages/map.js"></script>
+</body>
+</html>

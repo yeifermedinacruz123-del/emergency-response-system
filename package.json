@@ -1,0 +1,41 @@
+{
+  "name": "emergency-response-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema Inteligente de Gestion y Atencion de Emergencias - Web + PWA movil",
+  "author": "Yeifer Medina",
+  "license": "MIT",
+  "scripts": {
+    "install:all": "npm install --prefix backend",
+    "dev": "npm run dev --prefix backend",
+    "start": "npm start --prefix backend",
+    "db:up": "npm run db:up --prefix backend",
+    "db:down": "npm run db:down --prefix backend",
+    "db:status": "npm run db:status --prefix backend",
+    "db:sql": "npm run db:sql --prefix backend",
+    "db:reset": "npm run db:reset --prefix backend",
+    "db:schema": "npm run db:schema --prefix backend",
+    "db:seed": "npm run db:seed --prefix backend",
+    "docker:up": "docker compose up -d postgres",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f postgres",
+    "docker:reset": "docker compose down -v && docker compose up -d postgres",
+    "cert": "npm run cert --prefix backend",
+    "check": "node --check backend/src/server.js",
+    "test": "npm run test --prefix backend",
+    "test:api": "npm run test:api --prefix backend",
+    "test:realtime": "npm run test:realtime --prefix backend",
+    "test:security": "npm run test:security --prefix backend"
+  },
+  "keywords": [
+    "emergencias",
+    "geolocalizacion",
+    "pwa",
+    "socket.io",
+    "postgresql",
+    "express"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

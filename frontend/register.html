@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Crea tu cuenta ciudadana en el Emergency Response System">
+  <meta name="theme-color" content="#101a2e">
+  <title>Crear cuenta · Emergency Response System</title>
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+</head>
+<body>
+
+  <div class="auth">
+
+    <!-- ============ Presentacion ============ -->
+    <aside class="auth__aside">
+      <div class="auth__brand">
+        <span class="auth__logo" aria-hidden="true">🚨</span>
+        <div>
+          <p class="auth__title">Emergency<br>Response System</p>
+        </div>
+      </div>
+
+      <p class="auth__lead">
+        Crea tu cuenta ciudadana para reportar emergencias con tu ubicacion
+        exacta y seguir el estado de cada reporte.
+      </p>
+
+      <div class="auth__points">
+        <div class="auth__point">
+          <span class="auth__point-icon" aria-hidden="true">🆘</span>
+          <span>Boton SOS: una pulsacion sostenida y sale el aviso.</span>
+        </div>
+        <div class="auth__point">
+          <span class="auth__point-icon" aria-hidden="true">📍</span>
+          <span>Tu ubicacion GPS viaja con el reporte, sin escribir direcciones.</span>
+        </div>
+        <div class="auth__point">
+          <span class="auth__point-icon" aria-hidden="true">📷</span>
+          <span>Puedes adjuntar fotografias desde la camara o la galeria.</span>
+        </div>
+        <div class="auth__point">
+          <span class="auth__point-icon" aria-hidden="true">🔔</span>
+          <span>Te avisamos cuando se asigne personal y cuando se resuelva.</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ Formulario ============ -->
+    <main class="auth__main">
+      <div class="auth__card auth__card--wide">
+        <h1 class="auth__heading">Crear cuenta</h1>
+        <p class="auth__sub">
+          Solo para ciudadanos. Las cuentas de personal, operador y administrador
+          las crea un administrador desde el panel.
+        </p>
+
+        <div class="auth__alert" id="alert" role="alert">
+          <span aria-hidden="true">⚠</span>
+          <span id="alert-text"></span>
+        </div>
+
+        <form class="form" id="register-form" novalidate>
+
+          <div class="form__row">
+            <div class="field">
+              <label class="field__label" for="firstName">
+                Nombre <span class="required">*</span>
+              </label>
+              <input class="input" id="firstName" name="firstName"
+                     autocomplete="given-name" required autofocus>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="lastName">
+                Apellido <span class="required">*</span>
+              </label>
+              <input class="input" id="lastName" name="lastName"
+                     autocomplete="family-name" required>
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label class="field__label" for="documentType">Tipo de documento</label>
+              <select class="select" id="documentType" name="documentType">
+                <option value="CC">CC — Cedula de ciudadania</option>
+                <option value="TI">TI — Tarjeta de identidad</option>
+                <option value="CE">CE — Cedula de extranjeria</option>
+                <option value="PA">PA — Pasaporte</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="documentNumber">
+                Numero de documento <span class="required">*</span>
+              </label>
+              <input class="input" id="documentNumber" name="documentNumber"
+                     inputmode="numeric" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="email">
+              Correo electronico <span class="required">*</span>
+            </label>
+            <input class="input" type="email" id="email" name="email"
+                   autocomplete="email" placeholder="tucorreo@ejemplo.com" required>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label class="field__label" for="phone">Telefono</label>
+              <input class="input" type="tel" id="phone" name="phone"
+                     autocomplete="tel" placeholder="3001234567">
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="address">Direccion</label>
+              <input class="input" id="address" name="address"
+                     autocomplete="street-address" placeholder="Opcional">
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="password">
+              Contrasena <span class="required">*</span>
+            </label>
+            <input class="input" type="password" id="password" name="password"
+                   autocomplete="new-password" required>
+            <p class="field__hint">
+              Minimo 8 caracteres, con al menos una mayuscula, una minuscula y un numero.
+            </p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="passwordConfirm">
+              Repite la contrasena <span class="required">*</span>
+            </label>
+            <input class="input" type="password" id="passwordConfirm" name="passwordConfirm"
+                   autocomplete="new-password" required>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--lg btn--block" id="btn-submit">
+            Crear cuenta
+          </button>
+        </form>
+
+        <p class="auth__footer">
+          Ya tienes cuenta?
+          <a href="/login.html">Inicia sesion</a>
+        </p>
+      </div>
+    </main>
+
+  </div>
+
+  <script type="module" src="/js/pages/register.js"></script>
+</body>
+</html>

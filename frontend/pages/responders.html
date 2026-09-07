@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Gestion del personal de emergencia">
+  <meta name="theme-color" content="#101a2e">
+  <title>Personal · Emergency Response System</title>
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/tables.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <main class="app-main">
+      <div class="page">
+
+        <!-- ============ Resumen de disponibilidad ============ -->
+        <section class="kpi-grid" id="summary" aria-label="Resumen del personal">
+          <article class="kpi kpi--resuelto">
+            <span class="kpi__icon" aria-hidden="true">✅</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Disponibles</p>
+              <p class="kpi__value" data-count="DISPONIBLE">—</p>
+            </div>
+          </article>
+          <article class="kpi kpi--pendiente">
+            <span class="kpi__icon" aria-hidden="true">🚑</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Ocupadas</p>
+              <p class="kpi__value" data-count="OCUPADO">—</p>
+            </div>
+          </article>
+          <article class="kpi kpi--personal">
+            <span class="kpi__icon" aria-hidden="true">⏸</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Fuera de servicio</p>
+              <p class="kpi__value" data-count="FUERA_DE_SERVICIO">—</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel panel--flush" aria-labelledby="personal-title">
+
+          <div class="panel__head">
+            <div>
+              <h2 id="personal-title" class="panel__title">Personal de emergencia</h2>
+              <p class="text-muted" style="font-size: var(--text-xs);">
+                Unidades operativas, su disponibilidad y su ultima posicion
+              </p>
+            </div>
+            <button type="button" class="btn btn--primary btn--sm" id="btn-new" hidden>
+              <span class="btn__icon" aria-hidden="true">＋</span> Nueva unidad
+            </button>
+          </div>
+
+          <div class="filters">
+            <div class="field field--search">
+              <label class="field__label" for="f-search">Buscar</label>
+              <span class="field--search__icon" aria-hidden="true">🔍</span>
+              <input class="input" type="search" id="f-search" placeholder="Unidad, nombre o institucion">
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="f-type">Tipo</label>
+              <select class="select select--sm" id="f-type">
+                <option value="">Todos</option>
+                <option value="PARAMEDICO">Paramedico</option>
+                <option value="BOMBERO">Bombero</option>
+                <option value="POLICIA">Policia</option>
+                <option value="RESCATISTA">Rescatista</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="f-status">Disponibilidad</label>
+              <select class="select select--sm" id="f-status">
+                <option value="">Todas</option>
+                <option value="DISPONIBLE">Disponible</option>
+                <option value="OCUPADO">Ocupado</option>
+                <option value="FUERA_DE_SERVICIO">Fuera de servicio</option>
+              </select>
+            </div>
+
+            <div class="filters__actions">
+              <button type="button" class="btn btn--ghost btn--sm" id="btn-clear">Limpiar</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="table__col-narrow">Unidad</th>
+                  <th>Responsable</th>
+                  <th class="table__col-narrow">Tipo</th>
+                  <th class="table__col-narrow">Disponibilidad</th>
+                  <th class="table__col-narrow">Carga</th>
+                  <th>Ultima posicion</th>
+                  <th class="table__col-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+
+          <div class="pagination">
+            <p class="pagination__info" id="page-info">—</p>
+            <div class="pagination__controls" id="page-controls"></div>
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/pages/responders.js"></script>
+</body>
+</html>

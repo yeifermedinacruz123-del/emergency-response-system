@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema Inteligente de Gestion y Atencion de Emergencias">
+  <meta name="theme-color" content="#101a2e">
+  <title>Emergency Response System</title>
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/home.css">
+</head>
+<body class="home">
+
+  <header class="home__header">
+    <div class="home__brand">
+      <span class="home__logo" aria-hidden="true">🚨</span>
+      <div>
+        <h1 class="home__title">Emergency Response System</h1>
+        <p class="home__subtitle">Sistema Inteligente de Gestion y Atencion de Emergencias</p>
+      </div>
+    </div>
+    <span class="badge badge--outline" id="version-badge">v1.0.0</span>
+  </header>
+
+  <main class="home__main container">
+
+    <!-- ============ Estado del entorno ============ -->
+    <section class="panel" aria-labelledby="estado-title">
+      <div class="panel__head">
+        <h2 id="estado-title" class="panel__title">Estado del entorno</h2>
+        <button type="button" class="btn btn--ghost btn--sm" id="btn-recheck">
+          <span class="btn__icon" aria-hidden="true">⟳</span> Comprobar de nuevo
+        </button>
+      </div>
+
+      <div class="status-grid" id="status-grid">
+        <article class="status-card" data-check="server">
+          <div class="status-card__dot" data-state="loading"></div>
+          <div class="status-card__body">
+            <h3 class="status-card__title">Servidor API</h3>
+            <p class="status-card__value" data-field="value">Comprobando…</p>
+            <p class="status-card__detail" data-field="detail"></p>
+          </div>
+        </article>
+
+        <article class="status-card" data-check="database">
+          <div class="status-card__dot" data-state="loading"></div>
+          <div class="status-card__body">
+            <h3 class="status-card__title">PostgreSQL</h3>
+            <p class="status-card__value" data-field="value">Comprobando…</p>
+            <p class="status-card__detail" data-field="detail"></p>
+          </div>
+        </article>
+
+        <article class="status-card" data-check="frontend">
+          <div class="status-card__dot" data-state="loading"></div>
+          <div class="status-card__body">
+            <h3 class="status-card__title">Frontend</h3>
+            <p class="status-card__value" data-field="value">Comprobando…</p>
+            <p class="status-card__detail" data-field="detail"></p>
+          </div>
+        </article>
+
+        <article class="status-card" data-check="geo">
+          <div class="status-card__dot" data-state="loading"></div>
+          <div class="status-card__body">
+            <h3 class="status-card__title">Geolocalizacion</h3>
+            <p class="status-card__value" data-field="value">Comprobando…</p>
+            <p class="status-card__detail" data-field="detail"></p>
+          </div>
+        </article>
+      </div>
+
+      <p class="panel__hint" id="status-hint"></p>
+    </section>
+
+    <!-- ============ Avance del proyecto ============ -->
+    <section class="panel" aria-labelledby="fases-title">
+      <div class="panel__head">
+        <h2 id="fases-title" class="panel__title">Avance del desarrollo</h2>
+        <span class="badge badge--info" id="phase-badge">18 de 18 · completado</span>
+      </div>
+
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="18" aria-valuenow="18" aria-label="Fases completadas">
+        <div class="progress__bar" id="progress-bar"></div>
+      </div>
+
+      <ol class="phases" id="phases-list"></ol>
+    </section>
+
+  </main>
+
+  <footer class="home__footer">
+    <p>Proyecto final &middot; Web y Sistemas Moviles &middot; 2026-2</p>
+    <p class="text-subtle" id="footer-env">—</p>
+  </footer>
+
+  <script type="module" src="/js/pages/home.js"></script>
+</body>
+</html>

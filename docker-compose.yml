@@ -1,0 +1,107 @@
+# =============================================================================
+#  EMERGENCY RESPONSE SYSTEM - Orquestacion de servicios
+# =============================================================================
+#  Uso rapido:
+#    docker compose up -d postgres      -> solo la base de datos
+#    docker compose up -d               -> base de datos + pgAdmin
+#    docker compose --profile full up -d  -> ademas el backend en contenedor
+#    docker compose down                -> detener
+#    docker compose down -v             -> detener y BORRAR los datos
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  #  Base de datos PostgreSQL
+  #  Los scripts de database/init/ se ejecutan automaticamente en orden
+  #  alfabetico la PRIMERA vez que se crea el volumen.
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: ers_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ers_db}
+      POSTGRES_USER: ${POSTGRES_USER:-ers_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ers_password}
+      TZ: America/Bogota
+      PGTZ: America/Bogota
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ers_user} -d ${POSTGRES_DB:-ers_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - ers_network
+
+  # ---------------------------------------------------------------------------
+  #  pgAdmin - interfaz web para inspeccionar la base de datos
+  #  http://localhost:5050
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ers_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@ers.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ers_network
+
+  # ---------------------------------------------------------------------------
+  #  Backend + frontend estatico (opcional, perfil "full")
+  #  Para desarrollo normal es mas comodo ejecutarlo con: npm run dev
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ers_backend
+    restart: unless-stopped
+    profiles: ["full"]
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-ers_db}
+      DB_USER: ${POSTGRES_USER:-ers_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-ers_password}
+      TZ: America/Bogota
+    env_file:
+      - ./backend/.env
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./frontend:/frontend:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ers_network
+
+volumes:
+  postgres_data:
+    name: ers_postgres_data
+  pgadmin_data:
+    name: ers_pgadmin_data
+
+networks:
+  ers_network:
+    name: ers_network
+    driver: bridge

@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ritwickdey.liveserver",
+    "ckolkman.vscode-postgres",
+    "humao.rest-client",
+    "ms-azuretools.vscode-docker"
+  ]
+}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Configuracion del sistema">
+  <meta name="theme-color" content="#101a2e">
+  <title>Configuracion · Emergency Response System</title>
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/forms.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <main class="app-main">
+      <div class="page">
+
+        <!-- ============ Opciones editables ============ -->
+        <section class="panel" aria-labelledby="settings-title">
+
+          <div class="panel__head">
+            <div>
+              <h2 id="settings-title" class="panel__title">Configuracion del sistema</h2>
+              <p class="text-muted" style="font-size: var(--text-xs);">
+                Se aplica sin reiniciar el servidor. Solo el administrador puede cambiarla.
+              </p>
+            </div>
+            <div class="panel__actions">
+              <button type="button" class="btn btn--ghost btn--sm" id="btn-reset" disabled>
+                Descartar cambios
+              </button>
+              <button type="button" class="btn btn--primary btn--sm" id="btn-save" disabled>
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+
+          <form class="form" id="settings-form" novalidate>
+            <div id="settings-groups">
+              <p class="text-muted" style="font-size: var(--text-sm);">
+                <span class="spinner spinner--inline" aria-hidden="true"></span>
+                Cargando configuracion…
+              </p>
+            </div>
+          </form>
+
+          <p class="panel__hint" id="settings-hint"></p>
+        </section>
+
+        <!-- ============ Informacion del servidor ============ -->
+        <section class="panel" aria-labelledby="server-title">
+          <div class="panel__head">
+            <div>
+              <h2 id="server-title" class="panel__title">Estado del servidor</h2>
+              <p class="text-muted" style="font-size: var(--text-xs);">
+                Solo lectura. Estos valores vienen del entorno, no de la base de datos.
+              </p>
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-health">
+              <span class="btn__icon" aria-hidden="true">⟳</span> Comprobar
+            </button>
+          </div>
+
+          <dl class="info-grid" id="health-grid">
+            <div class="info-grid__item">
+              <dt>Estado</dt>
+              <dd id="h-status">—</dd>
+            </div>
+            <div class="info-grid__item">
+              <dt>Base de datos</dt>
+              <dd id="h-db">—</dd>
+            </div>
+            <div class="info-grid__item">
+              <dt>Entorno</dt>
+              <dd id="h-env">—</dd>
+            </div>
+            <div class="info-grid__item">
+              <dt>Tiempo activo</dt>
+              <dd id="h-uptime">—</dd>
+            </div>
+          </dl>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/pages/settings.js"></script>
+</body>
+</html>

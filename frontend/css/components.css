@@ -1,0 +1,820 @@
+/* ==========================================================================
+   components.css - Piezas reutilizables de la interfaz
+   Emergency Response System
+
+   Botones, badges, tarjetas, paneles, avisos, modales y avatares.
+   Todo usa las variables de variables.css: aqui no hay colores sueltos.
+   ========================================================================== */
+
+/* ==========================================================================
+   Botones
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-family: inherit;
+  line-height: 1.2;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast),
+              color var(--transition-fast), transform var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.btn:active:not(:disabled) { transform: scale(0.98); }
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
+  color: var(--text-inverse);
+}
+.btn--primary:hover:not(:disabled) { background: var(--brand-500); border-color: var(--brand-500); }
+
+.btn--danger {
+  background: var(--accent-500);
+  border-color: var(--accent-500);
+  color: var(--text-on-accent);
+}
+.btn--danger:hover:not(:disabled) { background: var(--accent-600); border-color: var(--accent-600); }
+
+.btn--success {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+.btn--success:hover:not(:disabled) { filter: brightness(0.94); }
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--border-base);
+  color: var(--text-base);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  border-color: var(--border-strong);
+}
+
+.btn--subtle {
+  background: var(--surface-sunken);
+  border-color: transparent;
+  color: var(--text-base);
+}
+.btn--subtle:hover:not(:disabled) { background: var(--border-soft); }
+
+.btn--link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--brand-500);
+  text-decoration: underline;
+}
+.btn--link:hover:not(:disabled) { color: var(--brand-400); }
+
+.btn--sm  { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
+.btn--lg  { padding: var(--space-3) var(--space-6); font-size: var(--text-md); }
+.btn--block { width: 100%; }
+
+.btn__icon { font-size: 1.05em; line-height: 1; }
+.btn.is-loading .btn__icon { animation: spin 800ms linear infinite; }
+
+/** Botones solo de icono, usados en las filas de las tablas. */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+.btn-icon:hover { background: var(--surface-sunken); color: var(--text-strong); }
+.btn-icon:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+/* ==========================================================================
+   Badges
+   ========================================================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+.badge--outline { border-color: rgba(255, 255, 255, 0.25); color: var(--brand-300); }
+.badge--info    { background: var(--info-bg);    color: var(--info); }
+.badge--success { background: var(--success-bg); color: var(--success); }
+.badge--warning { background: var(--warning-bg); color: var(--warning); }
+.badge--danger  { background: var(--danger-bg);  color: var(--danger); }
+.badge--neutral { background: var(--surface-sunken); color: var(--text-muted); }
+
+/* Estados de una emergencia: el color lo define el catalogo de la base. */
+.badge--status[data-status="PENDIENTE"]  { background: var(--status-pendiente-bg); color: var(--status-pendiente); }
+.badge--status[data-status="EN_PROCESO"] { background: var(--status-proceso-bg);   color: var(--status-proceso); }
+.badge--status[data-status="RESUELTO"]   { background: var(--status-resuelto-bg);  color: var(--status-resuelto); }
+.badge--status[data-status="CANCELADO"]  { background: var(--status-cancelado-bg); color: var(--status-cancelado); }
+
+/* Prioridades. */
+.badge--priority[data-priority="BAJA"]    { background: var(--priority-baja-bg);    color: var(--priority-baja); }
+.badge--priority[data-priority="MEDIA"]   { background: var(--priority-media-bg);   color: var(--priority-media); }
+.badge--priority[data-priority="ALTA"]    { background: var(--priority-alta-bg);    color: var(--priority-alta); }
+.badge--priority[data-priority="CRITICA"] { background: var(--priority-critica-bg); color: var(--priority-critica); }
+
+/* Disponibilidad del personal. */
+.badge--responder[data-status="DISPONIBLE"]        { background: var(--success-bg); color: var(--success); }
+.badge--responder[data-status="OCUPADO"]           { background: var(--warning-bg); color: var(--warning); }
+.badge--responder[data-status="FUERA_DE_SERVICIO"] { background: var(--surface-sunken); color: var(--text-muted); }
+
+/** Distintivo del SOS: lo unico de la interfaz que parpadea, y a proposito. */
+.badge--sos {
+  background: var(--accent-500);
+  color: #fff;
+  animation: pulseCritical 1.6s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Paneles y tarjetas
+   ========================================================================== */
+
+.panel {
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+}
+
+.panel__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+
+.panel__hint {
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Grupo de botones a la derecha de la cabecera de un panel. */
+.panel__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.panel--flush { padding: 0; overflow: hidden; }
+.panel--flush .panel__head { padding: var(--space-5) var(--space-6) 0; margin-bottom: var(--space-4); }
+
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ==========================================================================
+   Avatar
+   ========================================================================== */
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: var(--brand-600);
+  color: var(--text-inverse);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+.avatar--sm { width: 26px; height: 26px; font-size: 0.6875rem; }
+.avatar--lg { width: 44px; height: 44px; font-size: var(--text-sm); }
+
+/* ==========================================================================
+   Indicador de conexion en vivo
+   ========================================================================== */
+
+.live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+}
+
+.live-dot__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--text-subtle);
+}
+
+.live-dot__dot[data-state="ok"] {
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-bg);
+  animation: livePulse 2.4s ease-in-out infinite;
+}
+.live-dot__dot[data-state="wait"] { background: var(--warning); }
+.live-dot__dot[data-state="off"]  { background: var(--danger); }
+
+.live-dot[data-state="ok"]  { color: var(--success); }
+.live-dot[data-state="off"] { color: var(--danger); }
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* ==========================================================================
+   Avisos (toasts)
+   ========================================================================== */
+
+.toasts {
+  position: fixed;
+  top: var(--space-5);
+  right: var(--space-5);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: min(380px, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--info);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: toastIn 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.toast--leaving { animation: toastOut 180ms ease forwards; }
+
+.toast__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: var(--weight-bold);
+  color: #fff;
+  background: var(--info);
+}
+
+.toast__message {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--text-base);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.toast__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--text-subtle);
+  padding: 0 var(--space-1);
+}
+.toast__close:hover { color: var(--text-strong); }
+
+.toast--success { border-left-color: var(--success); }
+.toast--success .toast__icon { background: var(--success); }
+.toast--error   { border-left-color: var(--danger); }
+.toast--error   .toast__icon { background: var(--danger); }
+.toast--warning { border-left-color: var(--warning); }
+.toast--warning .toast__icon { background: var(--warning); }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastOut {
+  to { opacity: 0; transform: translateX(24px); }
+}
+
+/* ==========================================================================
+   Modales
+   ========================================================================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--surface-overlay);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 150ms ease;
+}
+
+.modal-overlay--leaving { animation: fadeOut 150ms ease forwards; }
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: calc(100vh - 3rem);
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 200ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.modal--sm { max-width: 420px; }
+.modal--md { max-width: 620px; }
+.modal--lg { max-width: 920px; }
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.modal__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+
+.modal__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-2xl);
+  line-height: 1;
+  color: var(--text-subtle);
+  padding: 0 var(--space-1);
+}
+.modal__close:hover { color: var(--text-strong); }
+
+.modal__body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal__text { font-size: var(--text-md); color: var(--text-base); line-height: 1.55; }
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-soft);
+  background: var(--surface-sunken);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+body.has-modal { overflow: hidden; }
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeOut { to { opacity: 0; } }
+
+/* ==========================================================================
+   Mensajes dentro de tablas y listas (cargando / vacio / error)
+   ========================================================================== */
+
+.table-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-10) var(--space-4);
+  text-align: center;
+}
+
+.table-message__icon { font-size: var(--text-3xl); opacity: 0.6; }
+
+.table-message__title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--text-base);
+}
+
+.table-message__text { font-size: var(--text-sm); color: var(--text-muted); }
+
+.table-message--error .table-message__title { color: var(--danger); }
+
+.spinner--inline {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+  display: inline-block;
+  vertical-align: -2px;
+}
+
+/* ==========================================================================
+   Paginacion
+   ========================================================================== */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-soft);
+}
+
+.pagination__info { font-size: var(--text-xs); color: var(--text-muted); }
+
+.pagination__controls { display: flex; align-items: center; gap: var(--space-2); }
+
+.pagination__page {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-card);
+  color: var(--text-base);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+.pagination__page:hover:not(:disabled) { background: var(--surface-sunken); }
+.pagination__page:disabled { opacity: 0.4; cursor: not-allowed; }
+.pagination__page.is-active {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
+  color: var(--text-inverse);
+  font-weight: var(--weight-semibold);
+}
+
+/* ==========================================================================
+   Etiquetas de tipo de emergencia
+   ========================================================================== */
+
+.type-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-base);
+}
+
+.type-tag__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   Bandeja de notificaciones
+   ========================================================================== */
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-soft);
+}
+
+/* Cuatro columnas: barra de "sin leer", icono, texto y hora. La barra es un
+   ::before y ocupa columna propia, por eso son cuatro y no tres. */
+.notif {
+  display: grid;
+  grid-template-columns: 3px auto 1fr auto;
+  align-items: start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-soft);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color var(--transition-fast);
+}
+
+a.notif:hover { background: var(--surface-sunken); }
+
+/* Sin leer: una barra de color a la izquierda en lugar de un fondo distinto,
+   que a mucho volumen convierte la lista en un tablero de ajedrez. */
+.notif::before {
+  content: '';
+  align-self: stretch;
+  border-radius: var(--radius-full);
+  background: var(--brand-500);
+}
+
+.notif.is-read { opacity: 0.7; }
+.notif.is-read::before { background: transparent; }
+
+.notif__icon {
+  font-size: var(--text-lg);
+  line-height: 1.2;
+}
+
+.notif__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.notif__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.notif__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+
+.notif__code {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.notif__message {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.notif__time {
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+
+.notif-empty__icon { font-size: 2rem; opacity: 0.75; }
+
+.notif-empty__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+
+.notif-empty__text {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  max-width: 46ch;
+}
+
+@media (max-width: 640px) {
+  .notif {
+    grid-template-columns: 3px auto 1fr;
+    padding: var(--space-4);
+  }
+  /* La hora baja debajo del texto en lugar de estrujar la columna. */
+  .notif__time { grid-column: 3; }
+}
+
+/* ==========================================================================
+   Configuracion del sistema
+   ========================================================================== */
+
+.setting-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 var(--space-6);
+}
+
+.setting-group:last-child { margin-bottom: 0; }
+
+.setting-group__title {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-subtle);
+  padding: 0 0 var(--space-2);
+}
+
+.setting {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.setting:last-child { border-bottom: none; }
+
+.setting__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.setting__label {
+  font-size: var(--text-sm);
+  color: var(--text-base);
+}
+
+/* La clave real se muestra a proposito: es la que se usa en la API y en la
+   auditoria, y ayuda a relacionar lo que se ve con lo que queda registrado. */
+.setting__key {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}
+
+.setting__meta { font-size: var(--text-xs); color: var(--text-subtle); }
+
+.setting__control { justify-self: stretch; }
+.setting__control .input,
+.setting__control .select { width: 100%; }
+
+@media (max-width: 640px) {
+  .setting { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================================
+   Rejilla de datos en solo lectura
+   ========================================================================== */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+}
+
+.info-grid__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.info-grid dt {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+}
+
+.info-grid dd {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  font-weight: var(--weight-medium);
+}
+
+/* ==========================================================================
+   Ventana de ayuda con pasos numerados
+   (permisos de ubicacion y otras explicaciones guiadas)
+   ========================================================================== */
+
+.modal__lead {
+  font-size: var(--text-md);
+  color: var(--text-base);
+  line-height: 1.55;
+  margin-bottom: var(--space-4);
+}
+
+.modal__sub {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle);
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.modal__note {
+  margin-top: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--info);
+  border-radius: var(--radius-sm);
+  background: var(--info-bg);
+  color: var(--info);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/* Los pasos van numerados y con aire: se leen con el telefono en una mano
+   mientras se toca el menu del navegador con la otra. */
+.steps {
+  list-style: none;
+  counter-reset: paso;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.steps li {
+  counter-increment: paso;
+  position: relative;
+  padding-left: var(--space-8);
+  font-size: var(--text-sm);
+  color: var(--text-base);
+  line-height: 1.5;
+}
+
+.steps li::before {
+  content: counter(paso);
+  position: absolute;
+  left: 0;
+  top: -1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--brand-600);
+  color: var(--text-inverse);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.steps code,
+.modal__lead code {
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.92em;
+  word-break: break-all;
+}

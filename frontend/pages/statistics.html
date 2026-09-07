@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Estadísticas del centro de control de emergencias">
+  <meta name="theme-color" content="#101a2e">
+  <title>Estadísticas · Emergency Response System</title>
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/tables.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/charts.css">
+
+  <!-- Chart.js alojado en el propio proyecto: sin dependencia de un CDN -->
+  <script src="/vendor/chartjs/chart.umd.js" defer></script>
+</head>
+<body>
+
+  <div class="app-shell">
+    <main class="app-main">
+      <div class="page">
+
+        <!-- ============ Controles ============ -->
+        <div class="stats-toolbar">
+          <div class="stats-toolbar__filters">
+            <div class="field">
+              <label class="field__label" for="f-days">Periodo</label>
+              <select class="select select--sm" id="f-days">
+                <option value="7">Últimos 7 días</option>
+                <option value="14">Últimos 14 días</option>
+                <option value="30" selected>Últimos 30 días</option>
+                <option value="90">Últimos 90 días</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="page__actions">
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-refresh">
+              <span class="btn__icon" aria-hidden="true">⟳</span> Actualizar
+            </button>
+          </div>
+        </div>
+
+        <!-- ============ Indicadores de resumen ============ -->
+        <section class="kpi-grid" aria-label="Resumen estadístico">
+          <article class="kpi kpi--pendiente">
+            <span class="kpi__icon" aria-hidden="true">📋</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Total registradas</p>
+              <p class="kpi__value" data-kpi="total">—</p>
+              <p class="kpi__hint">Histórico completo</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--resuelto">
+            <span class="kpi__icon" aria-hidden="true">✅</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Tasa de resolución</p>
+              <p class="kpi__value" data-kpi="tasa">—</p>
+              <p class="kpi__hint" id="tasa-hint">—</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--tiempo">
+            <span class="kpi__icon" aria-hidden="true">⏱️</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Hasta la asignación</p>
+              <p class="kpi__value" data-kpi="asignacion">—</p>
+              <p class="kpi__hint">Promedio</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--proceso">
+            <span class="kpi__icon" aria-hidden="true">🏁</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Hasta la resolución</p>
+              <p class="kpi__value" data-kpi="resolucion">—</p>
+              <p class="kpi__hint">Promedio</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--sos">
+            <span class="kpi__icon" aria-hidden="true">🆘</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Activaciones SOS</p>
+              <p class="kpi__value" data-kpi="sos">—</p>
+              <p class="kpi__hint" id="sos-hint">—</p>
+            </div>
+          </article>
+        </section>
+
+        <!-- ============ Gráficos ============ -->
+        <div class="stats-grid">
+
+          <section class="chart-card stats-grid__wide" aria-labelledby="g-dia">
+            <div class="chart-card__head">
+              <div>
+                <h2 id="g-dia" class="chart-card__title">Emergencias por día</h2>
+                <p class="chart-card__hint">Total reportadas y cuántas de ellas fueron SOS</p>
+              </div>
+            </div>
+            <div class="chart-box chart-box--tall"><canvas id="chart-dia"></canvas></div>
+          </section>
+
+          <section class="chart-card" aria-labelledby="g-tipo">
+            <div class="chart-card__head">
+              <div>
+                <h2 id="g-tipo" class="chart-card__title">Por tipo de emergencia</h2>
+                <p class="chart-card__hint">Los colores son los del catálogo del sistema</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="chart-tipo"></canvas></div>
+          </section>
+
+          <section class="chart-card" aria-labelledby="g-estado">
+            <div class="chart-card__head">
+              <div>
+                <h2 id="g-estado" class="chart-card__title">Por estado</h2>
+                <p class="chart-card__hint">Distribución del ciclo de vida</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="chart-estado"></canvas></div>
+          </section>
+
+          <section class="chart-card" aria-labelledby="g-prioridad">
+            <div class="chart-card__head">
+              <div>
+                <h2 id="g-prioridad" class="chart-card__title">Por prioridad</h2>
+                <p class="chart-card__hint">De la más urgente a la menos</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="chart-prioridad"></canvas></div>
+          </section>
+
+          <section class="chart-card" aria-labelledby="g-zona">
+            <div class="chart-card__head">
+              <div>
+                <h2 id="g-zona" class="chart-card__title">Por zona</h2>
+                <p class="chart-card__hint">Comunas y áreas rurales de Villavicencio</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="chart-zona"></canvas></div>
+          </section>
+
+          <section class="chart-card stats-grid__wide" aria-labelledby="g-tiempo">
+            <div class="chart-card__head">
+              <div>
+                <h2 id="g-tiempo" class="chart-card__title">Evolución del tiempo de respuesta</h2>
+                <p class="chart-card__hint">Minutos promedio desde el reporte hasta la asignación de personal</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="chart-tiempo"></canvas></div>
+          </section>
+
+          <section class="chart-card" aria-labelledby="g-objetivo">
+            <div class="chart-card__head">
+              <div>
+                <h2 id="g-objetivo" class="chart-card__title">Respuesta frente al objetivo</h2>
+                <p class="chart-card__hint">Cada prioridad tiene su propio tiempo objetivo</p>
+              </div>
+            </div>
+            <div id="objetivo-lista"></div>
+            <div class="target-legend">
+              <span class="target-legend__item">
+                <span class="target-legend__mark" style="background: var(--success)"></span> Dentro del objetivo
+              </span>
+              <span class="target-legend__item">
+                <span class="target-legend__mark" style="background: var(--danger)"></span> Fuera del objetivo
+              </span>
+              <span class="target-legend__item">
+                <span class="target-legend__mark target-legend__mark--goal"></span> Objetivo
+              </span>
+            </div>
+          </section>
+
+          <section class="chart-card" aria-labelledby="g-carga">
+            <div class="chart-card__head">
+              <div>
+                <h2 id="g-carga" class="chart-card__title">Carga por unidad</h2>
+                <p class="chart-card__hint">Emergencias atendidas y en curso</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="chart-carga"></canvas></div>
+          </section>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/pages/statistics.js"></script>
+</body>
+</html>

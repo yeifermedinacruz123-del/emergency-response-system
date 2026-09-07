@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Centro de control de emergencias">
+  <meta name="theme-color" content="#101a2e">
+  <title>Dashboard · Emergency Response System</title>
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/tables.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <!-- El armazon (barra lateral + navbar) lo inserta js/components/layout.js -->
+  <div class="app-shell">
+    <main class="app-main">
+      <div class="page">
+
+        <!-- ============ Indicadores ============ -->
+        <section class="kpi-grid" id="kpi-grid" aria-label="Indicadores del centro de control">
+          <article class="kpi kpi--pendiente">
+            <span class="kpi__icon" aria-hidden="true">⏳</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Pendientes</p>
+              <p class="kpi__value" data-kpi="pendientes">—</p>
+              <p class="kpi__hint">Sin personal asignado</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--proceso">
+            <span class="kpi__icon" aria-hidden="true">🔵</span>
+            <div class="kpi__body">
+              <p class="kpi__label">En proceso</p>
+              <p class="kpi__value" data-kpi="en_proceso">—</p>
+              <p class="kpi__hint">Personal atendiendo</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--sos" id="kpi-sos">
+            <span class="kpi__icon" aria-hidden="true">🆘</span>
+            <div class="kpi__body">
+              <p class="kpi__label">SOS activos</p>
+              <p class="kpi__value" data-kpi="sos_activas">—</p>
+              <p class="kpi__hint">Prioridad critica</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--resuelto">
+            <span class="kpi__icon" aria-hidden="true">✅</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Resueltas</p>
+              <p class="kpi__value" data-kpi="resueltas">—</p>
+              <p class="kpi__hint">Historico</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--personal">
+            <span class="kpi__icon" aria-hidden="true">🚑</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Personal disponible</p>
+              <p class="kpi__value" data-kpi="personal_disponible">—</p>
+              <p class="kpi__hint" id="personal-hint">—</p>
+            </div>
+          </article>
+
+          <article class="kpi kpi--tiempo">
+            <span class="kpi__icon" aria-hidden="true">⏱️</span>
+            <div class="kpi__body">
+              <p class="kpi__label">Tiempo de respuesta</p>
+              <p class="kpi__value" data-kpi="tiempo">—</p>
+              <p class="kpi__hint">Promedio hasta la asignacion</p>
+            </div>
+          </article>
+        </section>
+
+        <!-- ============ Actividad ============ -->
+        <div class="dashboard-grid">
+
+          <section class="panel panel--flush" aria-labelledby="activas-title">
+            <div class="panel__head">
+              <div>
+                <h2 id="activas-title" class="panel__title">Emergencias activas</h2>
+                <p class="text-muted" style="font-size: var(--text-xs);">
+                  Pendientes y en proceso, las mas urgentes primero
+                </p>
+              </div>
+              <a href="/pages/emergencies.html" class="btn btn--ghost btn--sm">Ver todas</a>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th class="table__col-code">Codigo</th>
+                    <th>Emergencia</th>
+                    <th class="table__col-narrow">Prioridad</th>
+                    <th class="table__col-narrow">Estado</th>
+                    <th class="table__col-narrow">Reportada</th>
+                  </tr>
+                </thead>
+                <tbody id="active-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel panel--flush" aria-labelledby="unidades-title">
+            <div class="panel__head">
+              <div>
+                <h2 id="unidades-title" class="panel__title">Unidades</h2>
+                <p class="text-muted" style="font-size: var(--text-xs);">
+                  Estado y ultima posicion conocida
+                </p>
+              </div>
+              <a href="/pages/responders.html" class="btn btn--ghost btn--sm">Gestionar</a>
+            </div>
+
+            <div class="data-list" id="units-list"></div>
+          </section>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/pages/dashboard.js"></script>
+</body>
+</html>

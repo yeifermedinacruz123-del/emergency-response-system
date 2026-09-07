@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Reportar una emergencia">
+  <meta name="theme-color" content="#101a2e">
+
+  <title>ERS · Reportar emergencia</title>
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+
+  <script src="/js/core/theme-init.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/mobile.css">
+</head>
+<body class="app-mobile">
+
+  <header class="m-header">
+    <div>
+      <button type="button" class="m-back" id="btn-back">
+        <span aria-hidden="true">←</span> Volver
+      </button>
+      <p class="m-header__title">Reportar emergencia</p>
+    </div>
+  </header>
+
+  <p class="offline-banner" id="offline-banner">
+    <span aria-hidden="true">⚠</span> Sin conexion
+  </p>
+
+  <main class="m-main">
+    <form id="report-form" novalidate>
+
+      <!-- ============ Tipo ============ -->
+      <section class="m-section">
+        <h2 class="m-section__title">Que esta pasando <span class="required">*</span></h2>
+        <div class="type-picker" id="type-picker">
+          <p class="text-muted" style="font-size: var(--text-sm);">Cargando tipos…</p>
+        </div>
+      </section>
+
+      <!-- ============ Descripcion ============ -->
+      <section class="m-section">
+        <h2 class="m-section__title">Detalles</h2>
+
+        <div class="field" style="margin-bottom: var(--space-4);">
+          <label class="field__label" for="title">Titulo <span class="required">*</span></label>
+          <input class="input" id="title" name="title" required maxlength="150"
+                 placeholder="Ej: Choque entre dos motos">
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="description">Descripcion</label>
+          <textarea class="textarea" id="description" name="description" maxlength="2000"
+                    placeholder="Cuantas personas hay, si hay heridos, que se ve…"></textarea>
+          <p class="field__hint">Cuanto mas concreto, mejor puede prepararse el personal.</p>
+        </div>
+      </section>
+
+      <!-- ============ Ubicacion ============ -->
+      <section class="m-section">
+        <h2 class="m-section__title">Ubicacion <span class="required">*</span></h2>
+
+        <div class="location-status" id="location-status" data-state="loading">
+          <span class="location-status__icon" aria-hidden="true">📍</span>
+          <div class="location-status__body">
+            <p id="location-text">Obteniendo tu ubicacion…</p>
+            <p class="location-status__coords" id="location-coords"></p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn--ghost btn--block" id="btn-locate"
+                style="margin-top: var(--space-3);">
+          <span class="btn__icon" aria-hidden="true">🎯</span> Actualizar mi ubicacion
+        </button>
+
+        <div class="field" style="margin-top: var(--space-4);">
+          <label class="field__label" for="address">Direccion o referencia</label>
+          <input class="input" id="address" name="address" maxlength="200"
+                 placeholder="Ej: Calle 15 con Carrera 30, frente al parque">
+          <p class="field__hint">Ayuda al personal a encontrarte mas rapido.</p>
+        </div>
+      </section>
+
+      <!-- ============ Fotografias ============ -->
+      <section class="m-section">
+        <h2 class="m-section__title">Fotografias <span id="photo-count"></span></h2>
+
+        <div class="photo-picker" id="photo-picker">
+          <button type="button" class="photo-add" id="btn-camera">
+            <span class="photo-add__icon" aria-hidden="true">📷</span>
+            <span>Camara</span>
+          </button>
+          <button type="button" class="photo-add" id="btn-gallery">
+            <span class="photo-add__icon" aria-hidden="true">🖼️</span>
+            <span>Galeria</span>
+          </button>
+        </div>
+
+        <!--
+          Dos inputs distintos: "capture" abre directamente la camara trasera,
+          y sin él el selector muestra la galeria. Un solo input no puede
+          ofrecer ambas cosas de forma fiable en Android.
+        -->
+        <input type="file" id="input-camera" accept="image/*" capture="environment" hidden multiple>
+        <input type="file" id="input-gallery" accept="image/jpeg,image/png,image/webp" hidden multiple>
+
+        <p class="field__hint" style="margin-top: var(--space-2);" id="photo-hint"></p>
+      </section>
+
+      <!-- ============ Nota de voz ============ -->
+      <section class="m-section" id="audio-section" hidden>
+        <h2 class="m-section__title">Nota de voz <span class="text-muted" style="font-weight: var(--weight-regular);">(opcional)</span></h2>
+
+        <div class="card" id="audio-idle">
+          <button type="button" class="btn btn--ghost btn--block" id="btn-record">
+            <span class="btn__icon" aria-hidden="true">🎙️</span> Grabar nota de voz
+          </button>
+          <p class="field__hint" style="margin-top: var(--space-2);">
+            Hasta 90 segundos. Util si no puedes escribir, por ejemplo mientras conduces o auxilias a alguien.
+          </p>
+        </div>
+
+        <div class="card" id="audio-recording" hidden style="text-align: center;">
+          <p style="color: var(--danger); font-weight: var(--weight-semibold);">
+            <span aria-hidden="true">🔴</span> Grabando… <span id="audio-timer">0:00</span>
+          </p>
+          <button type="button" class="btn btn--danger btn--block" id="btn-stop-record">Detener</button>
+        </div>
+
+        <div class="card" id="audio-done" hidden>
+          <audio id="audio-preview" controls style="width: 100%;"></audio>
+          <button type="button" class="btn btn--ghost btn--block" id="btn-discard-record" style="margin-top: var(--space-3);">
+            <span class="btn__icon" aria-hidden="true">✕</span> Descartar y regrabar
+          </button>
+        </div>
+      </section>
+
+      <!-- ============ Prioridad ============ -->
+      <section class="m-section">
+        <h2 class="m-section__title">Que tan urgente es</h2>
+        <div class="field">
+          <select class="select" id="priority" name="priority">
+            <option value="BAJA">Baja · puede esperar</option>
+            <option value="MEDIA" selected>Media · requiere atencion</option>
+            <option value="ALTA">Alta · situacion grave</option>
+            <option value="CRITICA">Critica · hay vidas en riesgo</option>
+          </select>
+          <p class="field__hint">El operador puede ajustarla al revisar el reporte.</p>
+        </div>
+      </section>
+
+      <button type="submit" class="btn btn--danger btn--lg btn--block" id="btn-submit">
+        Enviar reporte
+      </button>
+
+      <p class="field__hint" style="text-align: center; margin-top: var(--space-3);">
+        Si hay vidas en peligro inmediato, llama tambien al <a href="tel:123">123</a>.
+      </p>
+
+    </form>
+  </main>
+
+  <script type="module" src="/js/mobile/report.js"></script>
+</body>
+</html>
