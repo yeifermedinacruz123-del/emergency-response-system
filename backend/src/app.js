@@ -211,6 +211,19 @@ app.use(config.server.apiPrefix, apiLimiter, apiRoutes);
 if (config.frontend.serve) {
   const frontendPath = path.resolve(__dirname, config.frontend.dir);
 
+  /*
+   * La raiz lleva al acceso, no a la pagina de diagnostico.
+   *
+   * index.html es una pantalla tecnica (estado de la API, de la base de datos
+   * y avance por fases) util mientras se desarrolla, pero quien abre la
+   * direccion publica espera la aplicacion. La pagina de estado sigue
+   * disponible en /index.html para quien la necesite.
+   *
+   * Va ANTES de express.static: si no, el propio middleware serviria
+   * index.html al pedir "/" y este redireccion nunca se ejecutaria.
+   */
+  app.get('/', (req, res) => res.redirect('/login.html'));
+
   app.use(
     express.static(frontendPath, {
       extensions: ['html'],
