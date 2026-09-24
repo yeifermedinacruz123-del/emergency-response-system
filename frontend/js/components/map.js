@@ -30,6 +30,19 @@ export function isLeafletReady() {
    ========================================================================== */
 
 /**
+ * Capa de teselas de OpenStreetMap, igual para todos los mapas del sistema.
+ * `referrerPolicy` es imprescindible: sin la cabecera Referer, OSM entrega
+ * la imagen "Access blocked" en lugar del mapa (ver CONFIG.map).
+ */
+function baseTileLayer() {
+  return L.tileLayer(CONFIG.map.tileUrl, {
+    attribution: CONFIG.map.tileAttribution,
+    maxZoom: CONFIG.map.maxZoom,
+    referrerPolicy: CONFIG.map.tileReferrerPolicy,
+  });
+}
+
+/**
  * Crea un mapa centrado en la ciudad configurada.
  *
  * @param {string} containerId Id del contenedor.
@@ -53,10 +66,7 @@ export function createMap(containerId, options = {}) {
     fadeAnimation: false,
   });
 
-  L.tileLayer(CONFIG.map.tileUrl, {
-    attribution: CONFIG.map.tileAttribution,
-    maxZoom: CONFIG.map.maxZoom,
-  }).addTo(map);
+  baseTileLayer().addTo(map);
 
   return map;
 }
@@ -356,10 +366,7 @@ export function createMiniMap(containerId, latitude, longitude, emergency = null
     fadeAnimation: false, // ver comentario en createMap()
   });
 
-  L.tileLayer(CONFIG.map.tileUrl, {
-    attribution: CONFIG.map.tileAttribution,
-    maxZoom: CONFIG.map.maxZoom,
-  }).addTo(map);
+  baseTileLayer().addTo(map);
 
   // `title` le da nombre al marcador para los lectores de pantalla: Leaflet
   // lo vuelve un boton enfocable y sin nombre no se sabia que era.
@@ -406,10 +413,7 @@ export function createLocationPicker(containerId, {
     fadeAnimation: false, // ver comentario en createMap()
   });
 
-  L.tileLayer(CONFIG.map.tileUrl, {
-    attribution: CONFIG.map.tileAttribution,
-    maxZoom: CONFIG.map.maxZoom,
-  }).addTo(map);
+  baseTileLayer().addTo(map);
 
   const icon = L.divIcon({
     className: 'marker-wrapper',

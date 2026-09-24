@@ -27,7 +27,7 @@ vive **en memoria del proceso**. El orden recomendado es:
 
 1. `npm run test:api`        (109)
 2. `npm run test:realtime`   (51)
-3. `npm run test:security`   (55)  <- mejor de ultimo
+3. `npm run test:security`   (56)  <- mejor de ultimo
 
 `npm test` ya encadena api + realtime en ese orden, pero NO incluye seguridad.
 

@@ -54,7 +54,7 @@ npm run test:realtime   # 2
 npm run test:security   # 3 -- mejor de ultimo
 ```
 
-Son 215 comprobaciones (109 + 51 + 55). `security.test.js` agota a proposito
+Son 216 comprobaciones (109 + 51 + 56). `security.test.js` agota a proposito
 el limite de una cuenta INEXISTENTE y el de una cuenta que crea para eso:
 desde el 23-sep-2026 los limitadores son por cuenta/usuario, asi que ya no
 envenena a las otras suites. Aun asi va de ultimo: el tope por IP de /auth es

@@ -47,7 +47,18 @@ export const CONFIG = Object.freeze({
     zoom: 13,
     minZoom: 11,
     maxZoom: 18,
-    tileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    // URL que OpenStreetMap recomienda hoy (los subdominios a/b/c estan en
+    // desuso).
+    tileUrl: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    /*
+     * OpenStreetMap exige que cada peticion de tesela diga desde que sitio
+     * viene (cabecera Referer). El servidor manda "Referrer-Policy:
+     * no-referrer" para todo el sistema (helmet), asi que las teselas salian
+     * sin ella y OSM respondia con la imagen "403 Access blocked" en vez del
+     * mapa. Solo las teselas envian el ORIGEN del sitio, nunca la ruta ni la
+     * query (que puede llevar ids o tokens).
+     */
+    tileReferrerPolicy: 'strict-origin-when-cross-origin',
     tileAttribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     city: 'Villavicencio',

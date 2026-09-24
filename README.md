@@ -121,10 +121,10 @@ proyecto final/
 │   ├── scripts/
 │   │   ├── db-local.js           PostgreSQL sin instalador (initdb + pg_ctl)
 │   │   └── run-sql.js            ejecuta .sql sin necesitar psql
-│   ├── tests/                    215 comprobaciones
+│   ├── tests/                    216 comprobaciones
 │   │   ├── api.test.js           109 · API REST
 │   │   ├── realtime.test.js      51 · Socket.IO
-│   │   └── security.test.js      55 · seguridad
+│   │   └── security.test.js      56 · seguridad
 │   ├── uploads/emergencies/      fotografías si STORAGE_PROVIDER=local
 │   └── Dockerfile
 │
@@ -878,15 +878,15 @@ piezas aisladas. Requieren la base de datos y el servidor levantados.
 npm test              # API REST + tiempo real
 npm run test:api      # 109 comprobaciones
 npm run test:realtime # 51 comprobaciones
-npm run test:security # 55 comprobaciones
+npm run test:security # 56 comprobaciones
 ```
 
 | Suite | Comprobaciones | Qué cubre |
 |-------|:--------------:|-----------|
 | `tests/api.test.js` | 109 | Autenticación, los 4 roles, validación, SOS, asignaciones, transiciones, estadísticas, mapa, notificaciones, usuarios, auditoría, sesiones, fotos con enlace firmado y configuración que se aplica. |
 | `tests/realtime.test.js` | 51 | Cuatro clientes simultáneos con roles distintos; verifica que cada evento llegue **solo** a sus destinatarios, y que la sesión se recupere tras un corte de red. |
-| `tests/security.test.js` | 55 | Cabeceras, contraseñas, autorización, aislamiento, tokens falsificados, inyección SQL, suscripciones push (SSRF), archivos sin firma y limitadores. |
-| **Total** | **215** | |
+| `tests/security.test.js` | 56 | Cabeceras, contraseñas, autorización, aislamiento, tokens falsificados, inyección SQL, suscripciones push (SSRF), archivos sin firma y limitadores. |
+| **Total** | **216** | |
 
 > `test:security` agota a propósito el límite de una cuenta **inexistente** y
 > el de una cuenta que crea para eso, así que ya no deja bloqueada ninguna cuenta

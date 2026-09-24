@@ -50,7 +50,7 @@ app.use(
         scriptSrc: ["'self'", 'https://unpkg.com', 'https://cdn.jsdelivr.net'],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://unpkg.com', 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com', 'https://cdn.jsdelivr.net'],
-        imgSrc: ["'self'", 'data:', 'blob:', 'https://*.tile.openstreetmap.org', 'https://unpkg.com'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://tile.openstreetmap.org', 'https://*.tile.openstreetmap.org', 'https://unpkg.com'],
         /*
          * Las teselas del mapa tambien necesitan estar aqui, no solo en
          * imgSrc: el service worker las intercepta para guardarlas en cache
@@ -64,7 +64,7 @@ app.use(
          * sesion no llega a registrar el service worker; en un navegador
          * real, con el service worker activo, el fallo era inmediato.
          */
-        connectSrc: ["'self'", 'ws:', 'wss:', 'https://*.tile.openstreetmap.org'],
+        connectSrc: ["'self'", 'ws:', 'wss:', 'https://tile.openstreetmap.org', 'https://*.tile.openstreetmap.org'],
         workerSrc: ["'self'", 'blob:'],
         objectSrc: ["'none'"],
         frameAncestors: ["'self'"],

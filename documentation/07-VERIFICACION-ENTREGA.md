@@ -14,7 +14,7 @@ real (escritorio y móvil), modo sin conexión, GPS, fotos, push y accesibilidad
 | Instalación limpia siguiendo el README (carpeta nueva, PostgreSQL nuevo) | ✅ |
 | Suite de la API (`npm run test:api`) | ✅ 109 / 109 |
 | Suite de tiempo real (`npm run test:realtime`) | ✅ 51 / 51 |
-| Suite de seguridad (`npm run test:security`) | ✅ 55 / 55 |
+| Suite de seguridad (`npm run test:security`) | ✅ 56 / 56 |
 | Flujos de la PWA en móvil emulado (SOS, GPS, fotos, sin red, instalación) | ✅ 25 / 25 |
 | Flujos del panel web (despacho completo, usuarios, configuración, recuperación de contraseña) | ✅ 25 / 25 |
 | Uso solo con teclado (login, SOS, modales, tablas) | ✅ 9 / 9 |
@@ -22,8 +22,8 @@ real (escritorio y móvil), modo sin conexión, GPS, fotos, push y accesibilidad
 | Auditoría automática WCAG 2.1 A/AA (axe-core), 21 pantallas en tema claro y oscuro | ✅ 42 / 42 sin violaciones |
 | Reflujo a 320 px y a zoom 200 % (1366 px) | ✅ sin desbordes |
 
-Durante la revisión aparecieron **35 fallos reales** (y uno más, el 36, al activar el push en Render), todos corregidos (sección
-4). Las tres suites pasaron de 182 a 215 comprobaciones para cubrirlos.
+Durante la revisión aparecieron **35 fallos reales** (y dos más en producción, el 36 y el 37), todos corregidos (sección
+4). Las tres suites pasaron de 182 a 216 comprobaciones para cubrirlos.
 
 ---
 
@@ -51,7 +51,7 @@ Durante la revisión aparecieron **35 fallos reales** (y uno más, el 36, al act
 | Punto pendiente | Estado |
 |-----------------|--------|
 | Instalación limpia en el equipo de entrega y pruebas de integración | ✅ Hecho en una carpeta nueva. Nota: en Windows, si la ruta de la carpeta es muy larga (más de ~200 caracteres hasta `initdb.exe`), `db:up` falla con *invalid binary*; ahora el mensaje lo explica. |
-| `db:up`, `db:schema`, `db:seed`, arrancar y correr las tres suites | ✅ 215 / 215. La suite de seguridad **ya no bloquea cuentas reales**: el orden de las suites dejó de importar. |
+| `db:up`, `db:schema`, `db:seed`, arrancar y correr las tres suites | ✅ 216 / 216. La suite de seguridad **ya no bloquea cuentas reales**: el orden de las suites dejó de importar. |
 | Móvil: GPS permitido y denegado, SOS cancelado y enviado, cámara/fotos, instalación, sin red, push | ✅ En móvil emulado, con correcciones importantes (sección 4). 👤 Falta repetirlo en un teléfono físico. |
 | Teclado, lector de pantalla, 360–390 px, zoom 200 %, mensajes de error | ✅ Teclado, tamaños y zoom verificados; contraste y nombres accesibles corregidos. 👤 Falta una pasada con un lector de pantalla real (NVDA o TalkBack). |
 | `PUBLIC_URL`, `CREDENTIALS_SHEET_ENABLED=false` y proveedor de correo en el despliegue | ✅ En código: en Render `PUBLIC_URL` se toma solo de `RENDER_EXTERNAL_URL`, la hoja de contraseñas viene apagada en producción y se añadieron Brevo y Resend (API HTTP). 👤 Falta configurar el correo en Render (sección 6). |
@@ -106,6 +106,7 @@ Durante la revisión aparecieron **35 fallos reales** (y uno más, el 36, al act
 | 33 | El mapa del centro de control ignoraba el centro de Configuración | — | Lo usa |
 | 34 | `/favicon.ico` daba 404 | Error en la consola en cada página | Redirige al icono |
 | 35 | Configuración rechazaba un valor sin decir cuál | Mensaje genérico | Marca el campo inválido |
+| 37 | Las teselas salían sin cabecera `Referer` (Helmet manda `no-referrer`) | En producción OpenStreetMap devolvía la imagen "403 Access blocked" en lugar del mapa, y el service worker la guardaba en caché | Las teselas envían solo el origen del sitio; URL recomendada `tile.openstreetmap.org`; caché v8; prueba de CSP en `security.test.js` |
 
 También se corrigió la documentación: cifras desactualizadas del README (66
 módulos, 2 disparadores, 19 HTML…), enlaces rotos a los entregables y las

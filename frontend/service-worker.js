@@ -27,7 +27,9 @@
 
 'use strict';
 
-const CACHE_VERSION = 'v7';
+// v8: las teselas cambian de URL y se descartan las guardadas con la imagen
+// "Access blocked" de OpenStreetMap (llegaban con estado 200 y se cacheaban).
+const CACHE_VERSION = 'v8';
 const SHELL_CACHE = `ers-shell-${CACHE_VERSION}`;
 const API_CACHE = `ers-api-${CACHE_VERSION}`;
 const TILE_CACHE = `ers-tiles-${CACHE_VERSION}`;

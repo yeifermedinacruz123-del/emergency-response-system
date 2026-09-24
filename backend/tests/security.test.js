@@ -64,6 +64,10 @@ async function main() {
   check('CSP bloquea objetos incrustados', csp.includes("object-src 'none'"));
   check('CSP impide inyectar <base>', csp.includes("base-uri 'self'"));
   check('X-Content-Type-Options: nosniff', home.headers.get('x-content-type-options') === 'nosniff');
+  // El mapa usa tile.openstreetmap.org (sin subdominio): *.tile.openstreetmap.org
+  // no lo cubre, y sin el la CSP dejaria el mapa en blanco.
+  check('CSP permite las teselas de tile.openstreetmap.org',
+    /img-src[^;]*https:\/\/tile\.openstreetmap\.org/.test(csp) && /connect-src[^;]*https:\/\/tile\.openstreetmap\.org/.test(csp));
   check('X-Frame-Options contra clickjacking', Boolean(home.headers.get('x-frame-options')));
   check('Cabecera X-Powered-By oculta', !home.headers.get('x-powered-by'));
 
