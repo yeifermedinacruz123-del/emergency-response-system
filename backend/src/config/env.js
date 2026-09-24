@@ -26,6 +26,14 @@ function toInt(value, fallback) {
   return Number.isNaN(parsed) ? fallback : parsed;
 }
 
+/**
+ * Limpia un valor pegado a mano en un panel de variables: espacios, saltos de
+ * linea y comillas alrededor. Pasa mucho al copiar una clave VAPID.
+ */
+function cleanSecret(value) {
+  return String(value || '').trim().replace(/^["']|["']$/g, '').trim();
+}
+
 /** Convierte "a,b,c" en ['a','b','c'] sin espacios ni vacios. */
 function toList(value, fallback = []) {
   if (!value) return fallback;
@@ -231,9 +239,9 @@ const config = {
    */
   push: {
     enabled: toBool(process.env.PUSH_ENABLED, false),
-    subject: process.env.VAPID_SUBJECT || 'mailto:admin@ers.local',
-    publicKey: process.env.VAPID_PUBLIC_KEY || '',
-    privateKey: process.env.VAPID_PRIVATE_KEY || '',
+    subject: cleanSecret(process.env.VAPID_SUBJECT) || 'mailto:admin@ers.local',
+    publicKey: cleanSecret(process.env.VAPID_PUBLIC_KEY),
+    privateKey: cleanSecret(process.env.VAPID_PRIVATE_KEY),
   },
 };
 

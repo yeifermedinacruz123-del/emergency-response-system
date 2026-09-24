@@ -12,6 +12,7 @@ const ApiResponse = require('../utils/ApiResponse');
 const { checkConnection } = require('../database');
 const { config } = require('../config/env');
 const settingService = require('../services/setting.service');
+const pushService = require('../services/push.service');
 
 const startedAt = Date.now();
 
@@ -65,7 +66,8 @@ const publicConfig = asyncHandler(async (req, res) => {
         maxFiles,
         allowedTypes: config.storage.allowedMimeTypes,
       },
-      pushEnabled: config.push.enabled && pushSetting,
+      // Activo de verdad: claves validas y el interruptor de Configuracion encendido.
+      pushEnabled: pushService.isReady() && pushSetting,
     },
     'Configuracion publica'
   );

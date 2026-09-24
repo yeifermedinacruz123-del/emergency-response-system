@@ -46,7 +46,23 @@ function init() {
     return false;
   }
 
-  webpush.setVapidDetails(config.push.subject, config.push.publicKey, config.push.privateKey);
+  /*
+   * web-push valida las claves y LANZA si una esta mal (mal copiada, cortada,
+   * con el nombre de la variable pegado delante...). Sin este try, un error
+   * en una funcion opcional tumbaba el servidor entero: asi paso en Render al
+   * agregar las claves desde el panel. Ahora el sistema arranca sin push y el
+   * log dice que corregir.
+   */
+  try {
+    webpush.setVapidDetails(config.push.subject, config.push.publicKey, config.push.privateKey);
+  } catch (error) {
+    logger.error(
+      `Claves VAPID invalidas: ${error.message}. El sistema sigue sin notificaciones push. ` +
+        'Revisa VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY y VAPID_SUBJECT (mailto:... o https://...): ' +
+        'solo el valor, sin el nombre de la variable ni espacios.'
+    );
+    return false;
+  }
   ready = true;
 
   logger.info('Notificaciones push listas (Web Push / VAPID)');
@@ -55,7 +71,9 @@ function init() {
 
 /** La clave publica que necesita el navegador para suscribirse. */
 function getPublicKey() {
-  return config.push.enabled ? config.push.publicKey : null;
+  // Solo si las claves son validas: con una mala, el navegador intentaria
+  // suscribirse y fallaria sin explicacion.
+  return ready ? config.push.publicKey : null;
 }
 
 function isReady() {
