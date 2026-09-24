@@ -22,7 +22,7 @@ real (escritorio y móvil), modo sin conexión, GPS, fotos, push y accesibilidad
 | Auditoría automática WCAG 2.1 A/AA (axe-core), 21 pantallas en tema claro y oscuro | ✅ 42 / 42 sin violaciones |
 | Reflujo a 320 px y a zoom 200 % (1366 px) | ✅ sin desbordes |
 
-Durante la revisión aparecieron **35 fallos reales**, todos corregidos (sección
+Durante la revisión aparecieron **35 fallos reales** (y uno más, el 36, al activar el push en Render), todos corregidos (sección
 4). Las tres suites pasaron de 182 a 215 comprobaciones para cubrirlos.
 
 ---
@@ -80,6 +80,7 @@ Durante la revisión aparecieron **35 fallos reales**, todos corregidos (secció
 | 13 | `make-cert.js` cargaba `selfsigned` en cada arranque | 6 segundos de espera al arrancar, y dependencia de una devDependency | Se carga solo al generar el certificado |
 | 14 | `npm audit`: 5 vulnerabilidades moderadas | — | `qs`, `express` y `body-parser` actualizados; quedan 2 de `uuid` dentro de `exceljs` que no afectan (funciones que exceljs no usa) |
 | 15 | El máximo de fotos contaba la nota de voz | Con nota de voz se podía adjuntar una foto menos | Solo cuentan las imágenes |
+| 36 | Unas claves VAPID mal pegadas hacían fallar el arranque | Al activar el push en Render, el despliegue terminó con estado 1 (apareció después de la verificación) | El servidor arranca sin push y el log dice qué variable revisar; se limpian espacios y comillas |
 
 ### PWA y panel
 
