@@ -8,6 +8,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const ApiResponse = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
 const settingModel = require('../models/setting.model');
+const settingService = require('../services/setting.service');
 const auditModel = require('../models/audit.model');
 const { AUDIT_ACTIONS } = require('../config/constants');
 
@@ -25,11 +26,13 @@ const getAll = asyncHandler(async (req, res) => {
 const update = asyncHandler(async (req, res) => {
   const changes = req.body || {};
 
-  if (Object.keys(changes).length === 0) {
+  if (typeof changes !== 'object' || Array.isArray(changes) || Object.keys(changes).length === 0) {
     throw ApiError.badRequest('No se envio ninguna opcion para actualizar');
   }
 
-  const updated = await settingModel.updateMany(changes, req.user.id);
+  // Valida cada valor contra su tipo y su rango antes de guardar nada, y
+  // vacia la cache para que el cambio se aplique en la siguiente peticion.
+  const updated = await settingService.update(changes, req.user.id);
 
   if (updated.length === 0) {
     throw ApiError.badRequest(

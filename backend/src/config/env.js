@@ -47,6 +47,11 @@ const config = {
     port: toInt(process.env.PORT, 4000),
     host: process.env.HOST || '0.0.0.0',
     apiPrefix: process.env.API_PREFIX || '/api',
+    // URL canonica que aparece en los enlaces de recuperacion. En produccion
+    // no se deriva del encabezado Host enviado por quien hace la peticion.
+    // Render define RENDER_EXTERNAL_URL por su cuenta (https://<servicio>.onrender.com),
+    // asi que alli funciona sin configurar nada; PUBLIC_URL manda si existe.
+    publicUrl: (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || '').replace(/\/+$/, ''),
 
     /*
      * Servidor HTTPS adicional para probar desde el telefono.
@@ -58,8 +63,9 @@ const config = {
      * certificado propio (npm run cert), y el permiso si se pide.
      *
      * No sustituye a HTTP: los dos puertos quedan levantados a la vez.
+     * En produccion viene apagado: el HTTPS lo pone el proveedor delante.
      */
-    httpsEnabled: toBool(process.env.HTTPS_ENABLED, true),
+    httpsEnabled: toBool(process.env.HTTPS_ENABLED, !isProduction),
     httpsPort: toInt(process.env.HTTPS_PORT, 4443),
 
     /*
@@ -105,13 +111,26 @@ const config = {
     ]),
     rateLimit: {
       windowMs: toInt(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
-      max: toInt(process.env.RATE_LIMIT_MAX, 300),
+      // Por usuario (o por IP sin sesion) y por ventana. Cada pantalla del
+      // panel hace de 5 a 8 peticiones mas los refrescos en vivo: con 300, un
+      // operador navegando durante una demostracion podia agotarlo.
+      max: toInt(process.env.RATE_LIMIT_MAX, 1000),
       authMax: toInt(process.env.AUTH_RATE_LIMIT_MAX, 5),
     },
   },
 
   storage: {
-    provider: process.env.STORAGE_PROVIDER || 'local',
+    /*
+     * Donde se guardan fotos y notas de voz:
+     *   database  en PostgreSQL (columna photos.content). Por defecto.
+     *   local     en disco, en backend/uploads/emergencies.
+     *
+     * Por defecto van a la base porque es lo unico que sobrevive en un
+     * alojamiento gratuito: en Render el disco se borra en cada reinicio (y el
+     * servicio se duerme y reinicia solo), asi que las fotos de una demo
+     * desaparecian. Ademas quedan dentro de las copias de seguridad de la base.
+     */
+    provider: (process.env.STORAGE_PROVIDER || 'database').toLowerCase(),
     uploadDir: process.env.UPLOAD_DIR || 'uploads/emergencies',
     maxFileSizeBytes: toInt(process.env.MAX_FILE_SIZE_MB, 5) * 1024 * 1024,
     maxFilesPerEmergency: toInt(process.env.MAX_FILES_PER_EMERGENCY, 5),
@@ -138,7 +157,9 @@ const config = {
    * una funcion de produccion. Se apaga con CREDENTIALS_SHEET_ENABLED=false.
    */
   credentials: {
-    enabled: toBool(process.env.CREDENTIALS_SHEET_ENABLED, true),
+    // La hoja contiene contrasenas en texto plano: solo se activa por defecto
+    // en desarrollo y nunca debe habilitarse en un despliegue publico.
+    enabled: toBool(process.env.CREDENTIALS_SHEET_ENABLED, !isProduction),
     // Ruta relativa desde backend/
     dir: process.env.CREDENTIALS_DIR || 'storage/credenciales',
     fileName: process.env.CREDENTIALS_FILE || 'usuarios-y-contrasenas.xlsx',
@@ -162,7 +183,19 @@ const config = {
    * backend/.env para que envie correos de verdad.
    */
   mail: {
-    enabled: Boolean(process.env.SMTP_HOST),
+    /*
+     * Por donde sale el correo:
+     *   smtp    servidor SMTP propio (Gmail con contrasena de aplicacion...).
+     *   brevo   API HTTP de Brevo  (MAIL_API_KEY).
+     *   resend  API HTTP de Resend (MAIL_API_KEY).
+     *
+     * Las dos APIs existen porque muchos alojamientos gratuitos (Render entre
+     * ellos) bloquean el puerto SMTP saliente: el correo se quedaba colgado
+     * y nunca llegaba. Una API HTTP va por el puerto 443, que nunca se cierra.
+     * Sin MAIL_PROVIDER se usa SMTP si hay SMTP_HOST, y si no hay nada, nada.
+     */
+    provider: (process.env.MAIL_PROVIDER || (process.env.SMTP_HOST ? 'smtp' : '')).toLowerCase(),
+    apiKey: process.env.MAIL_API_KEY || '',
     host: process.env.SMTP_HOST || '',
     port: toInt(process.env.SMTP_PORT, 587),
     secure: toBool(process.env.SMTP_SECURE, false),
@@ -215,6 +248,23 @@ function validateEnv() {
     const value = process.env[name];
     return !value || value.startsWith('CAMBIAR');
   });
+
+  if (isProduction) {
+    let validPublicUrl = false;
+    try {
+      const url = new URL(config.server.publicUrl);
+      validPublicUrl = url.protocol === 'https:'
+        && !url.username
+        && !url.password
+        && (url.pathname === '/' || url.pathname === '')
+        && !url.search
+        && !url.hash;
+    } catch {
+      // Una URL ausente o mal formada no puede usarse para enlaces seguros.
+    }
+    if (!validPublicUrl) missing.push('PUBLIC_URL (origen HTTPS)');
+    if (config.credentials.enabled) missing.push('CREDENTIALS_SHEET_ENABLED=false');
+  }
 
   if (missing.length === 0) return { ok: true, missing: [] };
 

@@ -51,12 +51,19 @@ Sin servidor arriba, fallan todas y el resultado no significa nada.
 ```bash
 npm run test:api        # 1
 npm run test:realtime   # 2
-npm run test:security   # 3 -- SIEMPRE de ultimo
+npm run test:security   # 3 -- mejor de ultimo
 ```
 
-`security.test.js` agota a proposito el limitador de intentos de login y el
-contador vive en memoria del proceso. Si corre antes que las otras, las
-envenena y veras `429` por todos lados.
+Son 215 comprobaciones (109 + 51 + 55). `security.test.js` agota a proposito
+el limite de una cuenta INEXISTENTE y el de una cuenta que crea para eso:
+desde el 23-sep-2026 los limitadores son por cuenta/usuario, asi que ya no
+envenena a las otras suites. Aun asi va de ultimo: el tope por IP de /auth es
+compartido y los contadores viven en memoria (se limpian al reiniciar).
+
+Las suites solo prueban el backend. Lo que verifica la interfaz (PWA sin red,
+GPS denegado, teclado, contraste) esta descrito en
+`documentation/07-VERIFICACION-ENTREGA.md`: al tocar el frontend, recorre las
+pantallas, no te quedes solo con las suites.
 
 ## Arquitectura del backend
 

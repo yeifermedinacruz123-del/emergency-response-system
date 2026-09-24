@@ -22,7 +22,7 @@
   <main class="m-main" style="display: flex; align-items: center; justify-content: center;">
     <div class="m-empty">
       <span class="m-empty__icon" aria-hidden="true">📡</span>
-      <p class="m-empty__title">Sin conexion</p>
+      <h1 class="m-empty__title">Sin conexión</h1>
       <p class="m-empty__text">
         No pudimos cargar esta pantalla porque no hay red y todavia no estaba
         guardada en el telefono.
@@ -48,17 +48,7 @@
     </div>
   </main>
 
-  <script>
-    // Sin modulos ni dependencias: esta pagina debe funcionar cuando todo lo
-    // demas ha fallado.
-    document.getElementById('btn-retry').addEventListener('click', function () {
-      window.location.reload();
-    });
-
-    // En cuanto vuelva la red, se recarga sola.
-    window.addEventListener('online', function () {
-      window.location.reload();
-    });
-  </script>
+  <!-- Archivo aparte: la CSP del servidor bloquea los scripts en linea -->
+  <script src="/js/mobile/offline.js"></script>
 </body>
 </html>

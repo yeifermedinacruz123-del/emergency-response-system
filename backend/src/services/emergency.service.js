@@ -28,6 +28,7 @@ const {
 const { transaction } = require('../database');
 const ApiError = require('../utils/ApiError');
 const { getPagination, buildMeta } = require('../utils/pagination');
+const { signPhotos } = require('../utils/uploadUrl');
 
 const emergencyModel = require('../models/emergency.model');
 const locationModel = require('../models/location.model');
@@ -40,8 +41,8 @@ const catalogModel = require('../models/catalog.model');
 const auditModel = require('../models/audit.model');
 const notificationService = require('./notification.service');
 const contactService = require('./contact.service');
+const settingService = require('./setting.service');
 const realtime = require('../sockets/realtime');
-const { config } = require('../config/env');
 
 /* =========================================================================
  *  Permisos
@@ -156,16 +157,17 @@ async function listForMap(query, user) {
   // Por defecto el mapa muestra solo lo que sigue abierto.
   if (query.active === undefined) filters.activeOnly = true;
 
-  const [emergencies, responders] = await Promise.all([
+  const [emergencies, responders, mapSettings] = await Promise.all([
     emergencyModel.listForMap(filters),
     responderModel.listForMap(),
+    settingService.getMapSettings(),
   ]);
 
   return {
     emergencies,
     responders,
-    center: { lat: config.geo.lat, lng: config.geo.lng },
-    zoom: config.geo.zoom,
+    center: mapSettings.center,
+    zoom: mapSettings.zoom,
   };
 }
 
@@ -180,7 +182,9 @@ async function getById(id, user) {
     assignmentModel.findByEmergency(id),
   ]);
 
-  return { ...emergency, photos, history, assignments };
+  // Las rutas de los archivos salen firmadas: solo sirven a quien ya paso
+  // assertCanView, y caducan (ver utils/uploadUrl.js).
+  return { ...emergency, photos: signPhotos(photos), history, assignments };
 }
 
 /** Linea de tiempo. */
@@ -269,8 +273,18 @@ async function resolveCatalogs({ typeCode, priorityCode, statusCode }) {
  * @param {boolean} isSos        true si viene del boton SOS.
  */
 async function create(data, photoRecords, user, req, isSos = false) {
-  // Un SOS entra siempre como CRITICA, sin importar lo que envie el cliente.
-  const priorityCode = isSos ? PRIORITIES.CRITICA : data.priority || PRIORITIES.MEDIA;
+  // Un SOS entra con la prioridad de la configuracion del sistema (CRITICA
+  // por defecto), sin importar lo que envie el cliente.
+  const priorityCode = isSos
+    ? await settingService.getSosPriority()
+    : data.priority || PRIORITIES.MEDIA;
+
+  // El maximo de fotos lo fija el administrador; la nota de voz no cuenta.
+  const imageCount = photoRecords.filter((photo) => String(photo.mime_type).startsWith('image/')).length;
+  const maxPhotos = await settingService.getMaxPhotos();
+  if (imageCount > maxPhotos) {
+    throw ApiError.badRequest(`Se pueden adjuntar como maximo ${maxPhotos} fotografia(s) por emergencia.`);
+  }
 
   const { type, priority, status } = await resolveCatalogs({
     typeCode: data.type,
@@ -819,7 +833,7 @@ async function addPhotos(id, photoRecords, user, req) {
   }
 
   const already = await photoModel.countByEmergency(id);
-  const maximum = config.storage.maxFilesPerEmergency;
+  const maximum = await settingService.getMaxPhotos();
 
   if (already + photoRecords.length > maximum) {
     throw ApiError.badRequest(
@@ -856,7 +870,7 @@ async function addPhotos(id, photoRecords, user, req) {
     req
   );
 
-  return photoModel.findByEmergency(id);
+  return signPhotos(await photoModel.findByEmergency(id));
 }
 
 /* =========================================================================

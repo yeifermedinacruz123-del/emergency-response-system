@@ -41,11 +41,13 @@ function item(notification) {
       </span>
     </div>`;
 
-  const style = notification.is_read ? 'opacity: .72;' : '';
+  // Leida: fondo hundido y titulo sin negrita (ver .m-card.is-read). Antes se
+  // atenuaba con opacidad y el texto quedaba por debajo del contraste minimo.
+  const readClass = notification.is_read ? ' is-read' : '';
 
   return link
-    ? `<a href="${link}" class="m-card" data-id="${notification.id}" style="${style}">${inner}</a>`
-    : `<div class="m-card" data-id="${notification.id}" style="cursor: default; ${style}">${inner}</div>`;
+    ? `<a href="${link}" class="m-card${readClass}" data-id="${notification.id}">${inner}</a>`
+    : `<div class="m-card${readClass}" data-id="${notification.id}" style="cursor: default;">${inner}</div>`;
 }
 
 async function load({ append = false } = {}) {

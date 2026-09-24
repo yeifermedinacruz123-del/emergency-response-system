@@ -71,13 +71,28 @@ export const realtime = {
     connecting = (async () => {
       // Import dinamico: la libreria solo se descarga en las paginas que
       // realmente usan tiempo real.
-      const { io } = await import('/socket.io/socket.io.esm.min.js');
+      let io;
+      try {
+        ({ io } = await import('/socket.io/socket.io.esm.min.js'));
+      } catch (error) {
+        /*
+         * Sin red (y sin copia en el service worker) el import falla. Antes
+         * ese error subia hasta la pagina y cortaba su arranque: en la PWA sin
+         * conexion el boton SOS quedaba sin responder. El tiempo real es un
+         * extra; la pantalla tiene que funcionar sin el.
+         */
+        console.warn('Tiempo real no disponible:', error.message);
+        setStatus('error', 'Sin conexion en tiempo real');
+        connecting = null;
+        return null;
+      }
 
       const instance = io(CONFIG.socket.url, {
         auth: { token },
         transports: ['websocket', 'polling'],
         reconnectionAttempts: CONFIG.socket.reconnectionAttempts,
         reconnectionDelay: CONFIG.socket.reconnectionDelay,
+        reconnectionDelayMax: CONFIG.socket.reconnectionDelayMax,
       });
 
       instance.on('connect', () => setStatus('connected'));

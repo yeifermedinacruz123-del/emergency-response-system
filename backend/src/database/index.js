@@ -123,4 +123,49 @@ async function closePool() {
   logger.info('Pool de PostgreSQL cerrado');
 }
 
-module.exports = { pool, query, queryOne, queryAll, transaction, checkConnection, closePool };
+/**
+ * Aplica los archivos de database/migrations, en orden alfabetico.
+ *
+ * Existe para las bases que ya tienen datos: schema.sql empieza con DROP
+ * TABLE, asi que volver a cargarlo borraria todo. Las migraciones solo
+ * agregan (ADD COLUMN IF NOT EXISTS...) y son idempotentes, por eso pueden
+ * correr en cada arranque. Es la unica forma de actualizar la base en un
+ * alojamiento sin consola, como el plan gratuito de Render.
+ *
+ * Nunca detiene el arranque: si una falla se registra y el servidor sigue.
+ */
+async function applyMigrations() {
+  const fs = require('fs');
+  const path = require('path');
+  const dir = path.resolve(__dirname, '../../../database/migrations');
+
+  let files = [];
+  try {
+    files = fs.readdirSync(dir).filter((name) => name.endsWith('.sql')).sort();
+  } catch {
+    return [];
+  }
+
+  const applied = [];
+  for (const name of files) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await pool.query(fs.readFileSync(path.join(dir, name), 'utf8'));
+      applied.push(name);
+    } catch (error) {
+      if (error.code === '42P01') {
+        // Base vacia: todavia no se cargo schema.sql, que ya trae todo esto.
+        logger.warn('La base de datos aun no tiene el esquema. Cargalo con: npm run db:schema');
+        return applied;
+      }
+      logger.error(`No se pudo aplicar la migracion ${name}: ${error.message}`);
+    }
+  }
+
+  if (applied.length > 0) logger.info(`Migraciones al dia: ${applied.join(', ')}`);
+  return applied;
+}
+
+module.exports = {
+  pool, query, queryOne, queryAll, transaction, checkConnection, closePool, applyMigrations,
+};

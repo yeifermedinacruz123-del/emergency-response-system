@@ -1,8 +1,9 @@
 /**
  * Rutas de /api/auth
  *
- * El login y el registro llevan un limitador estricto (authLimiter): 5 intentos
- * por ventana. Es la defensa contra fuerza bruta sobre las contrasenas.
+ * El login lleva un limitador estricto por cuenta (loginLimiter): 5 intentos
+ * fallidos por ventana. Es la defensa contra fuerza bruta sobre las
+ * contrasenas. Todo /auth comparte ademas un tope por IP (authLimiter).
  */
 
 'use strict';
@@ -13,13 +14,15 @@ const controller = require('../controllers/auth.controller');
 const validator = require('../validators/auth.validator');
 const validate = require('../middleware/validate.middleware');
 const { authenticate } = require('../middleware/auth.middleware');
-const { authLimiter } = require('../middleware/rateLimit.middleware');
+const { authLimiter, loginLimiter } = require('../middleware/rateLimit.middleware');
 
 const router = Router();
 
 // ---- Publicas ----
 router.post('/register', authLimiter, validator.register, validate, controller.register);
-router.post('/login', authLimiter, validator.login, validate, controller.login);
+// Dos limites: uno por cuenta (fuerza bruta contra un correo) y otro por IP
+// (probar muchos correos). Ver rateLimit.middleware.js.
+router.post('/login', authLimiter, loginLimiter, validator.login, validate, controller.login);
 // /refresh tambien va limitado: es publico y hace verificacion criptografica
 // mas una consulta a la base. authLimiter omite las peticiones correctas, asi
 // que solo cuentan los intentos fallidos.

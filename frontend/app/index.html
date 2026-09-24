@@ -11,6 +11,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32">
   <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ERS">
@@ -98,13 +99,13 @@
     <section class="m-section" id="seismic-section" hidden>
       <div class="card" style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);">
         <div>
-          <p style="font-weight: var(--weight-semibold);">🌍 Alerta sismica automatica</p>
-          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">
+          <p style="font-weight: var(--weight-semibold);" id="seismic-label">🌍 Alerta sismica automatica</p>
+          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;" id="seismic-help">
             Usa el sensor de movimiento del telefono para avisar solo. Solo funciona con la app abierta.
           </p>
         </div>
         <label class="checkbox" style="flex-shrink: 0;">
-          <input type="checkbox" id="seismic-toggle">
+          <input type="checkbox" id="seismic-toggle" aria-labelledby="seismic-label" aria-describedby="seismic-help">
         </label>
       </div>
     </section>

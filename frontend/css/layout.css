@@ -307,7 +307,7 @@
 
 /* El rojo se reserva para cerrar sesion, que es la accion destructiva. Los
    demas elementos del menu son navegacion y no deben avisar de nada. */
-#btn-logout:hover { color: var(--danger); }
+#btn-logout:hover { color: var(--danger-text); }
 
 /* ==========================================================================
    Contenido de la pagina

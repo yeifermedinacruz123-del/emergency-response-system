@@ -18,9 +18,13 @@ import { askForLocation, explainLocationProblem, isCoarse } from '../core/geo.js
 import { $, $$, escapeHtml, formatCoords, getParam } from '../core/utils.js';
 import { notify, notifyApiError, busyButton } from '../core/ui.js';
 import { queueReport } from '../core/offlineQueue.js';
+import { createLocationPicker } from '../components/map.js';
 
-/** Limites, alineados con la configuracion del backend. */
-const MAX_PHOTOS = 5;
+/**
+ * Maximo de fotografias. Lo fija el administrador en Configuracion y llega
+ * por /api/config al abrir la pantalla; 5 es el valor mientras tanto (o sin red).
+ */
+let MAX_PHOTOS = 5;
 const MAX_DIMENSION = 1600;
 const JPEG_QUALITY = 0.82;
 
@@ -29,9 +33,10 @@ const MAX_AUDIO_SECONDS = 90;
 
 /** Estado del formulario. */
 const state = {
-  location: null,
+  location: null, // { latitude, longitude, accuracy, manual? }
   photos: [], // { file, url }
   audio: null, // { blob, url }
+  user: null,
 };
 
 /* ==========================================================================
@@ -101,6 +106,10 @@ async function requestLocation({ silent = false, explain = true } = {}) {
   });
 
   if (result.ok) {
+    // La lectura automatica del arranque no pisa un punto que el usuario ya
+    // marco a mano mientras esperaba; si pidio el GPS con el boton, si.
+    if (silent && state.location?.manual) return true;
+
     state.location = result;
 
     /*
@@ -128,13 +137,72 @@ async function requestLocation({ silent = false, explain = true } = {}) {
     return true;
   }
 
+  // Un punto marcado a mano en el mapa no se pierde porque el GPS falle despues.
+  if (state.location?.manual) {
+    setLocationState('ok', 'Ubicacion marcada en el mapa',
+      formatCoords(state.location.latitude, state.location.longitude));
+    return true;
+  }
+
   state.location = null;
 
   // Se deja a mano el enlace para volver a abrir la explicacion: el aviso de
   // una linea no cabe los pasos, y el usuario ya cerro la ventana.
-  setLocationState('error', result.message);
+  setLocationState('error', `${result.message} Puedes marcar el lugar en el mapa.`);
   showLocationHelpLink(result.code);
   return false;
+}
+
+/* ==========================================================================
+   Ubicacion marcada a mano
+   ========================================================================== */
+
+let picker = null;
+
+/**
+ * Abre el mapa para marcar el lugar. Es la salida cuando el GPS no sirve:
+ * antes, con el permiso bloqueado, el formulario no tenia forma de enviarse
+ * y el SOS sin ubicacion mandaba aqui a un callejon sin salida.
+ */
+function openPicker() {
+  const container = $('#location-picker');
+  const toggle = $('#btn-pick-map');
+  container.hidden = false;
+  toggle.setAttribute('aria-expanded', 'true');
+
+  if (!picker) {
+    const start = state.location || {};
+    picker = createLocationPicker('picker-map', {
+      latitude: start.latitude ?? null,
+      longitude: start.longitude ?? null,
+      center: state.mapCenter,
+      zoom: state.mapZoom,
+      onPick: ({ lat, lng }) => {
+        state.location = { latitude: lat, longitude: lng, accuracy: null, manual: true };
+        setLocationState('ok', 'Ubicacion marcada en el mapa', formatCoords(lat, lng));
+        vibrate(30);
+      },
+    });
+
+    if (!picker) {
+      $('#picker-hint').textContent =
+        'No se pudo cargar el mapa. Escribe la direccion lo mas exacta posible y activa el GPS.';
+      return;
+    }
+  }
+
+  // Leaflet mide el contenedor al crearse: si estaba oculto hay que avisarle.
+  setTimeout(() => picker.map.invalidateSize(), 50);
+  container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function togglePicker() {
+  if ($('#location-picker').hidden) {
+    openPicker();
+  } else {
+    $('#location-picker').hidden = true;
+    $('#btn-pick-map').setAttribute('aria-expanded', 'false');
+  }
 }
 
 /**
@@ -454,8 +522,8 @@ async function handleSubmit(event) {
     const located = await requestLocation();
 
     if (!located) {
-      notify.error('Sin ubicacion no se puede enviar el reporte. Activa el GPS e intentalo de nuevo.', 9000);
-      $('#location-status').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      notify.error('Sin ubicacion no se puede enviar el reporte. Marca el lugar en el mapa o activa el GPS.', 9000);
+      openPicker();
       return;
     }
   }
@@ -476,6 +544,8 @@ async function handleSubmit(event) {
   };
   if (state.location.accuracy) fields.accuracy = Math.round(state.location.accuracy);
   if ($('#address').value.trim()) fields.address = $('#address').value.trim();
+  // El operador debe saber que el punto no viene del GPS del telefono.
+  if (state.location.manual) fields.reference = 'Ubicacion marcada a mano en el mapa (sin GPS)';
 
   /*
    * multipart/form-data porque van archivos. El cliente de la API detecta el
@@ -506,7 +576,8 @@ async function handleSubmit(event) {
         await queueReport(
           fields,
           state.photos.map((photo) => photo.file),
-          state.audio ? state.audio.blob : null
+          state.audio ? state.audio.blob : null,
+          { userId: state.user.id }
         );
 
         vibrate([100, 60, 100, 60, 100]);
@@ -543,9 +614,29 @@ async function handleSubmit(event) {
 
 /* -------------------------------------------------------------------------- */
 
+/** Maximo de fotos y centro del mapa que fijo el administrador. */
+async function loadPublicConfig() {
+  try {
+    const publicConfig = await api.publicConfig();
+    const maxFiles = Number.parseInt(publicConfig?.uploads?.maxFiles, 10);
+    if (maxFiles >= 1) MAX_PHOTOS = maxFiles;
+
+    const center = publicConfig?.map?.center;
+    if (center && Number.isFinite(center.lat) && Number.isFinite(center.lng)) {
+      state.mapCenter = [center.lat, center.lng];
+      state.mapZoom = publicConfig.map.zoom;
+    }
+  } catch {
+    // Sin red se queda con los valores por defecto.
+  }
+}
+
 async function init() {
   const user = await initMobilePage({ nav: 'report', realtime: false });
   if (!user) return;
+  state.user = user;
+
+  await loadPublicConfig();
 
   $('#btn-back').addEventListener('click', () => {
     if (mediaStream) mediaStream.getTracks().forEach((track) => track.stop());
@@ -555,15 +646,20 @@ async function init() {
 
   $('#report-form').addEventListener('submit', handleSubmit);
   $('#btn-locate').addEventListener('click', () => requestLocation());
+  $('#btn-pick-map').addEventListener('click', togglePicker);
+  $('#btn-pick-center').addEventListener('click', () => picker?.placeAtCenter());
 
   setupPhotos();
   setupAudioRecorder();
   await loadTypes();
 
-  // Si se llega desde un SOS sin ubicacion, se avisa del motivo.
-  if (getParam('sos') === '1') {
+  // Si se llega desde un SOS sin ubicacion, se avisa del motivo y se abre el
+  // mapa: sin un punto la emergencia no se puede crear.
+  const fromSos = getParam('sos') === '1';
+  if (fromSos) {
     $('#priority').value = 'CRITICA';
-    notify.warning('No se pudo obtener tu ubicacion automaticamente. Escribe la direccion lo mas exacta que puedas.', 9000);
+    notify.warning('No se pudo obtener tu ubicacion. Marca en el mapa donde estas y describe lo que pasa.', 9000);
+    openPicker();
   }
 
   /*

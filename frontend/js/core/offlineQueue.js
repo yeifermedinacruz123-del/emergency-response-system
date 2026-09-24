@@ -48,25 +48,38 @@ async function withStore(mode, run) {
 
 /**
  * Guarda un reporte para enviarlo mas tarde.
+ *
+ * Se guarda tambien QUIEN lo hizo. Sin eso, el reporte se enviaba con la
+ * sesion que estuviera abierta al volver la red: si en ese telefono entraba
+ * otra persona, el reporte quedaba a nombre de ella.
+ *
  * @param {object} fields  Campos de texto del formulario (type, title, etc).
  * @param {File[]} photos  Fotografias ya redimensionadas.
  * @param {Blob|null} audio  Nota de voz, si se grabo una.
+ * @param {object} [options]
+ * @param {number} options.userId  Usuario que lo creo.
+ * @param {string} [options.endpoint]  Ruta de la API ('/emergencies' o '/emergencies/sos').
  */
-export async function queueReport(fields, photos, audio) {
+export async function queueReport(fields, photos, audio, { userId, endpoint = '/emergencies' } = {}) {
   return withStore('readwrite', (store) =>
-    store.add({ fields, photos, audio, createdAt: Date.now() })
+    store.add({ fields, photos, audio, userId, endpoint, createdAt: Date.now() })
   );
 }
 
-/** Todos los reportes pendientes, mas antiguos primero. */
-export async function listQueuedReports() {
+/**
+ * Reportes pendientes de un usuario, mas antiguos primero.
+ * @param {number} userId
+ */
+export async function listQueuedReports(userId) {
   const items = await withStore('readonly', (store) => store.getAll());
-  return (items || []).sort((a, b) => a.createdAt - b.createdAt);
+  return (items || [])
+    .filter((item) => item.userId === userId)
+    .sort((a, b) => a.createdAt - b.createdAt);
 }
 
-/** Cuantos reportes estan pendientes. Para el indicador de la pantalla de inicio. */
-export async function countQueuedReports() {
-  return withStore('readonly', (store) => store.count());
+/** Cuantos reportes tiene pendientes un usuario. Para el aviso de la pantalla de inicio. */
+export async function countQueuedReports(userId) {
+  return (await listQueuedReports(userId)).length;
 }
 
 /** Quita un reporte ya enviado. */

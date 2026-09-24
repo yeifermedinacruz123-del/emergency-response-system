@@ -100,7 +100,24 @@ export async function logout(redirect = true) {
     // Sin conexion o token ya expirado: se continua con el cierre local.
   } finally {
     session.clear();
+    await clearUserCaches();
     if (redirect) window.location.href = ROUTES.login;
+  }
+}
+
+/**
+ * Borra las respuestas de la API y las fotos que el service worker guardo
+ * para el modo sin conexion. Son datos de la persona que cerro la sesion: en
+ * un telefono compartido, el siguiente usuario no debe poder verlos sin red.
+ * El HTML, el CSS y el JS de la aplicacion se conservan.
+ */
+async function clearUserCaches() {
+  if (!('caches' in window)) return;
+  try {
+    const names = await caches.keys();
+    await Promise.all(names.filter((name) => name.startsWith('ers-api-')).map((name) => caches.delete(name)));
+  } catch {
+    // Almacenamiento no disponible: no hay nada que borrar.
   }
 }
 

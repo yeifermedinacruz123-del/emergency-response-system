@@ -219,8 +219,10 @@ async function load() {
     setSubtitle(`${state.total} emergencia(s)`);
 
     // La URL refleja los filtros: se puede compartir o recargar sin perderlos.
+    // buildQuery ya incluye el "?": antes se anteponia otro y la URL quedaba
+    // "??page=1&status=...", asi que al recargar se perdia el primer filtro.
     const query = buildQuery(buildParams());
-    window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+    window.history.replaceState(null, '', query || window.location.pathname);
   } catch (error) {
     body.innerHTML = tableMessage(columnCount, {
       icon: '⚠',

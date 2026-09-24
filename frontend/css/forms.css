@@ -33,13 +33,13 @@
   letter-spacing: 0.04em;
 }
 
-.field__label .required { color: var(--danger); margin-left: 2px; }
+.field__label .required { color: var(--danger-text); margin-left: 2px; }
 
 .field__hint { font-size: var(--text-xs); color: var(--text-subtle); }
 
 .field__error {
   font-size: var(--text-xs);
-  color: var(--danger);
+  color: var(--danger-text);
   font-weight: var(--weight-medium);
 }
 
@@ -272,7 +272,7 @@
   text-align: center;
 }
 
-.auth__footer a { color: var(--brand-500); font-weight: var(--weight-medium); }
+.auth__footer a { color: var(--link); font-weight: var(--weight-medium); }
 .auth__footer a:hover { text-decoration: underline; }
 
 /* Aviso de error del formulario de acceso. */
@@ -285,7 +285,7 @@
   border-radius: var(--radius-md);
   border-left: 3px solid var(--danger);
   background: var(--danger-bg);
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--text-sm);
   line-height: 1.45;
 }
@@ -295,7 +295,7 @@
 .auth__alert--success {
   border-left-color: var(--success);
   background: var(--success-bg);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 @media (max-width: 900px) {

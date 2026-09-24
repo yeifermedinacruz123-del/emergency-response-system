@@ -309,6 +309,37 @@ async function main() {
     if (client && client.socket) client.socket.close();
   });
 
+  console.log('\n===== 10. RECUPERACION TRAS UN CORTE DE RED =====');
+
+  /*
+   * El caso del telefono que pierde la señal un momento. Socket.IO recupera
+   * la sesion (mismas salas, eventos perdidos incluidos), pero antes el
+   * servidor se saltaba la autenticacion en ese camino: el socket recuperado
+   * quedaba sin usuario, lanzaba un TypeError y dejaba de contestar a
+   * emergency:subscribe. El detalle abierto despues del corte ya no se
+   * actualizaba solo.
+   */
+  const recovering = io(BASE, { auth: { token: citizenToken }, transports: ['websocket'] });
+  await new Promise((resolve) => recovering.once('connect', resolve));
+  await settle(300);
+
+  recovering.io.engine.close(); // corta el transporte sin cerrar la sesion
+  await new Promise((resolve) => recovering.once('connect', resolve));
+  await settle(300);
+
+  check('La sesion se recupera tras un corte breve', recovering.recovered === true);
+
+  const afterCut = await new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 3000);
+    recovering.emit('emergency:subscribe', emergency.id, (reply) => {
+      clearTimeout(timer);
+      resolve(reply);
+    });
+  });
+  check('El socket recuperado sigue atendiendo emergency:subscribe',
+    afterCut?.ok === true, JSON.stringify(afterCut));
+  recovering.close();
+
   console.log('\n==================================================');
   console.log(`  RESULTADO:  ${passed} correctas,  ${failed} fallidas`);
   if (failures.length > 0) {

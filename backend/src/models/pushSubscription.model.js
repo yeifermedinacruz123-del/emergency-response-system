@@ -57,9 +57,12 @@ async function findByUsers(userIds = []) {
   );
 }
 
-/** Elimina una suscripcion por su endpoint. */
-async function removeByEndpoint(endpoint) {
-  const result = await query('DELETE FROM push_subscriptions WHERE endpoint = $1', [endpoint]);
+/** Elimina una suscripcion por su endpoint, solo si es del usuario indicado. */
+async function removeByEndpoint(endpoint, userId) {
+  const result = await query(
+    'DELETE FROM push_subscriptions WHERE endpoint = $1 AND user_id = $2',
+    [endpoint, userId]
+  );
   return result.rowCount > 0;
 }
 

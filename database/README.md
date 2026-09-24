@@ -6,7 +6,7 @@ Esta carpeta contiene todo lo relacionado con PostgreSQL.
 |-------------------|-----------|
 | `schema.sql` | DDL completo: tablas, restricciones, indices, vistas y triggers. *(Fase 3)* |
 | `seed.sql` | Datos de demostracion de Villavicencio. *(Fase 3)* |
-| `migrations/` | Cambios incrementales del esquema, numerados. |
+| `migrations/` | Cambios para bases que ya tienen datos. Son idempotentes y el backend los aplica **solo, al arrancar** (no hay que ejecutarlos a mano; en Render no hay consola). |
 | `seeds/` | Conjuntos de datos adicionales. |
 | `init/` | Se monta dentro del contenedor de PostgreSQL: los `.sql` que estén aquí se ejecutan **automáticamente** la primera vez que se crea el volumen. Solo aplica a la ruta con Docker. |
 
@@ -70,5 +70,11 @@ npm run db:seed      # inserta los datos de demostración
 Ambos ejecutan `backend/scripts/run-sql.js`, que lee el archivo `.sql` y lo
 envía por el driver `pg`. Así funcionan igual con o sin `psql` instalado.
 
-> El esquema se crea en la **Fase 3**. Por ahora esta carpeta solo tiene la
-> estructura y la base `ers_db` vacía.
+> `schema.sql` empieza borrando las tablas: volver a cargarlo **borra todos los
+> datos**. Para cambiar una base que ya está en uso (por ejemplo la de Render),
+> el cambio va en `migrations/` como SQL idempotente (`ADD COLUMN IF NOT
+> EXISTS`...), y el servidor lo aplica en el siguiente arranque.
+>
+> `001-fotos-en-la-base.sql` agrega `photos.content` (las fotos y notas de voz se
+> guardan en PostgreSQL, que sí persiste en el plan gratuito de Render) y activa
+> la opción de push, que se había sembrado apagada cuando dependía de Firebase.

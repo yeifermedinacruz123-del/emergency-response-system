@@ -147,7 +147,23 @@ function initialise() {
       '--auth-host=scram-sha-256',
       '--auth-local=scram-sha-256',
     ]);
-    if (result.status !== 0) fail('initdb fallo. Revisa el mensaje anterior.');
+    if (result.status !== 0) {
+      /*
+       * Caso real al probar una instalacion limpia: con el proyecto en una
+       * carpeta muy anidada, la ruta de initdb.exe pasa de ~250 caracteres y
+       * Windows no la resuelve. initdb solo dice "invalid binary", que no
+       * orienta a nadie.
+       */
+      const longPath = process.platform === 'win32' && bin('initdb').length > 200;
+      fail(
+        'initdb fallo. Revisa el mensaje anterior.' +
+          (longPath
+            ? `\n\n  La ruta del proyecto es muy larga para Windows (${bin('initdb').length} caracteres).\n` +
+              '  Si el mensaje dice "invalid binary", mueve la carpeta a una ruta mas corta\n' +
+              '  (por ejemplo C:\\ers) y vuelve a ejecutar npm install y npm run db:up.'
+            : '')
+      );
+    }
   } finally {
     fs.rmSync(passwordFile, { force: true });
   }

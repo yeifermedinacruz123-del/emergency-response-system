@@ -19,7 +19,7 @@ const os = require('os');
 const app = require('./app');
 const { config, validateEnv } = require('./config/env');
 const logger = require('./config/logger');
-const { checkConnection, closePool } = require('./database');
+const { checkConnection, closePool, applyMigrations } = require('./database');
 const { createSocketServer } = require('./sockets');
 const pushService = require('./services/push.service');
 
@@ -146,6 +146,9 @@ async function start() {
   const databaseStatus = await checkConnection();
   if (!databaseStatus.connected) {
     logger.warn('El servidor arrancara sin base de datos. Levantala con: npm run db:up');
+  } else {
+    // Cambios de esquema para bases ya cargadas (idempotentes, ver database/migrations).
+    await applyMigrations();
   }
 
   // 4. Servidor HTTPS (opcional): mismo Express y mismo Socket.IO, otro puerto
@@ -229,6 +232,15 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-start();
+/*
+ * Si el arranque falla (por ejemplo, falta PUBLIC_URL en produccion) el
+ * proceso tiene que terminar con un error claro. Antes el fallo quedaba como
+ * "promesa rechazada sin manejar" y el proceso seguia vivo sin escuchar ningun
+ * puerto: en Render se veia como un despliegue colgado, no como un error.
+ */
+start().catch((error) => {
+  logger.error(`No se pudo arrancar el servidor: ${error.message}`);
+  process.exit(1);
+});
 
 module.exports = server;

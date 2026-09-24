@@ -320,9 +320,12 @@ export function createHeatLayer(emergencies = []) {
 /**
  * Ajusta el mapa para que se vean todos los puntos.
  * Si no hay ninguno, se queda en el centro configurado en lugar de saltar a
- * una vista del mundo entero.
+ * una vista del mundo entero. `center` y `zoom` permiten usar el centro que
+ * el administrador fijo en Configuracion (llega con /emergencies/map).
  */
-export function fitToMarkers(map, layers = [], { maxZoom = 15 } = {}) {
+export function fitToMarkers(map, layers = [], {
+  maxZoom = 15, center = CONFIG.map.center, zoom = CONFIG.map.zoom,
+} = {}) {
   const points = [];
 
   layers.forEach((layer) => {
@@ -330,7 +333,7 @@ export function fitToMarkers(map, layers = [], { maxZoom = 15 } = {}) {
   });
 
   if (points.length === 0) {
-    map.setView(CONFIG.map.center, CONFIG.map.zoom);
+    map.setView(center, zoom);
     return;
   }
 
@@ -358,8 +361,12 @@ export function createMiniMap(containerId, latitude, longitude, emergency = null
     maxZoom: CONFIG.map.maxZoom,
   }).addTo(map);
 
+  // `title` le da nombre al marcador para los lectores de pantalla: Leaflet
+  // lo vuelve un boton enfocable y sin nombre no se sabia que era.
   const marker = L.marker([Number(latitude), Number(longitude)], {
     icon: emergency ? emergencyIcon(emergency) : undefined,
+    title: emergency ? `Ubicacion de ${emergency.code}` : 'Ubicacion de la emergencia',
+    alt: 'Ubicacion de la emergencia',
   }).addTo(map);
 
   if (emergency) marker.bindPopup(emergencyPopup(emergency));
@@ -367,7 +374,70 @@ export function createMiniMap(containerId, latitude, longitude, emergency = null
   return map;
 }
 
+/**
+ * Mapa para marcar a mano donde esta la emergencia.
+ *
+ * Es la salida cuando el GPS no sirve (permiso bloqueado, sin señal, lectura
+ * de kilometros): sin coordenadas el reporte no se puede crear, y antes el
+ * formulario se quedaba sin forma de enviarse. Se toca el punto en el mapa o
+ * se arrastra el marcador; con teclado, se mueve el mapa con las flechas y se
+ * usa el centro (ver `placeAtCenter`).
+ *
+ * @param {string} containerId
+ * @param {object} options
+ * @param {number} [options.latitude]  Punto inicial (por ejemplo, una lectura imprecisa).
+ * @param {number} [options.longitude]
+ * @param {Array<number>} [options.center]  Centro si no hay punto inicial.
+ * @param {number} [options.zoom]
+ * @param {(latlng: {lat: number, lng: number}) => void} options.onPick
+ * @returns {{map: object, placeAtCenter: Function}|null}
+ */
+export function createLocationPicker(containerId, {
+  latitude = null, longitude = null, center = CONFIG.map.center, zoom = CONFIG.map.zoom, onPick,
+} = {}) {
+  if (!isLeafletReady()) return null;
+
+  const hasStart = Number.isFinite(latitude) && Number.isFinite(longitude);
+
+  const map = L.map(containerId, {
+    center: hasStart ? [latitude, longitude] : center,
+    zoom: hasStart ? 16 : zoom,
+    scrollWheelZoom: false,
+    fadeAnimation: false, // ver comentario en createMap()
+  });
+
+  L.tileLayer(CONFIG.map.tileUrl, {
+    attribution: CONFIG.map.tileAttribution,
+    maxZoom: CONFIG.map.maxZoom,
+  }).addTo(map);
+
+  const icon = L.divIcon({
+    className: 'marker-wrapper',
+    html: `<div class="marker" style="--marker-color: var(--danger, #e11d48)">
+             <span class="marker__icon" aria-hidden="true">📍</span>
+           </div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 34],
+  });
+
+  let marker = null;
+
+  function place(latlng) {
+    if (!marker) {
+      marker = L.marker(latlng, { icon, draggable: true, title: 'Lugar de la emergencia' }).addTo(map);
+      marker.on('dragend', () => onPick?.(marker.getLatLng()));
+    } else {
+      marker.setLatLng(latlng);
+    }
+    onPick?.(marker.getLatLng());
+  }
+
+  map.on('click', (event) => place(event.latlng));
+
+  return { map, placeAtCenter: () => place(map.getCenter()) };
+}
+
 export default {
   createMap, createMiniMap, MarkerLayer, fitToMarkers, isLeafletReady,
-  createHeatLayer, isHeatReady,
+  createHeatLayer, isHeatReady, createLocationPicker,
 };

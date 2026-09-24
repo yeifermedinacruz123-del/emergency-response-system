@@ -38,7 +38,7 @@ operador.
 | Módulo | Qué hace |
 |--------|----------|
 | 🚨 **Reporte de emergencias** | 7 tipos, descripción, prioridad, GPS y hasta 5 fotografías. |
-| 🆘 **Botón SOS** | Un toque → ubicación automática + emergencia de prioridad **CRÍTICA**. |
+| 🆘 **Botón SOS** | Mantener pulsado 2 segundos → ubicación automática + emergencia de prioridad **CRÍTICA**. |
 | 📍 **Geolocalización** | Geolocation API + Leaflet + OpenStreetMap (sin servicios de pago). |
 | 🗺️ **Mapa del centro de control** | Emergencias y unidades en vivo, con marcadores por tipo, prioridad y estado. |
 | ⚡ **Tiempo real** | Socket.IO: el dashboard se actualiza sin recargar la página. |
@@ -104,31 +104,31 @@ certificados HTTPS.
 
 ```text
 proyecto final/
-├── backend/                      66 módulos JavaScript
+├── backend/                      78 módulos JavaScript
 │   ├── src/
 │   │   ├── config/               env · database · constants · logger
 │   │   ├── database/             query · transaction · healthcheck
-│   │   ├── models/               SQL puro, uno por entidad (13)
-│   │   ├── services/             reglas de negocio (7)
-│   │   ├── controllers/          HTTP ↔ servicios (10)
-│   │   ├── routes/               definición de endpoints (11)
+│   │   ├── models/               SQL puro, uno por entidad (17)
+│   │   ├── services/             reglas de negocio (11)
+│   │   ├── controllers/          HTTP ↔ servicios (11)
+│   │   ├── routes/               definición de endpoints (13)
 │   │   ├── middleware/           auth · validate · error · upload · rateLimit
-│   │   ├── validators/           reglas de entrada (5)
+│   │   ├── validators/           reglas de entrada (6)
 │   │   ├── sockets/              index (servidor) · realtime (emisor)
-│   │   ├── utils/                ApiError · ApiResponse · jwt · pagination
+│   │   ├── utils/                ApiError · ApiResponse · jwt · pagination · uploadUrl
 │   │   ├── app.js                middlewares y montaje de rutas
 │   │   └── server.js             arranque, Socket.IO y apagado ordenado
 │   ├── scripts/
 │   │   ├── db-local.js           PostgreSQL sin instalador (initdb + pg_ctl)
 │   │   └── run-sql.js            ejecuta .sql sin necesitar psql
-│   ├── tests/                    182 comprobaciones
-│   │   ├── api.test.js           92 · API REST
-│   │   ├── realtime.test.js      49 · Socket.IO
-│   │   └── security.test.js      41 · seguridad
-│   ├── uploads/emergencies/      fotografías (desarrollo)
+│   ├── tests/                    215 comprobaciones
+│   │   ├── api.test.js           109 · API REST
+│   │   ├── realtime.test.js      51 · Socket.IO
+│   │   └── security.test.js      55 · seguridad
+│   ├── uploads/emergencies/      fotografías si STORAGE_PROVIDER=local
 │   └── Dockerfile
 │
-├── frontend/                     19 HTML · 12 CSS · 30 JS
+├── frontend/                     22 HTML · 12 CSS · 36 JS
 │   ├── index.html                estado del sistema y avance
 │   ├── login.html                acceso
 │   ├── manifest.json             metadatos de instalación de la PWA
@@ -150,8 +150,9 @@ proyecto final/
 │   └── assets/icons/             iconos de la PWA
 │
 ├── database/
-│   ├── schema.sql                17 tablas · 4 vistas · 2 disparadores
-│   └── seed.sql                  datos de demostración de Villavicencio
+│   ├── schema.sql                21 tablas · 4 vistas · 5 disparadores
+│   ├── seed.sql                  datos de demostración de Villavicencio
+│   └── migrations/               cambios para bases ya cargadas (se aplican solos al arrancar)
 │
 ├── documentation/                análisis · arquitectura · modelo de datos ·
 │                                 plan de fases · API · manual de usuario
@@ -202,6 +203,11 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 
 Usa una clave distinta para `JWT_SECRET` y otra para `JWT_REFRESH_SECRET`.
 `DB_PASSWORD` debe coincidir con `POSTGRES_PASSWORD` del `.env` de la raíz.
+En producción el servidor exige un origen HTTPS para los enlaces de
+recuperación (`PUBLIC_URL`; en Render se toma solo de `RENDER_EXTERNAL_URL`)
+y que la hoja de contraseñas en texto plano esté apagada
+(`CREDENTIALS_SHEET_ENABLED=false`, que en producción ya es el valor por
+defecto). Si falta algo, termina con un mensaje claro en vez de arrancar.
 
 ### 3. Instalar dependencias
 
@@ -235,7 +241,7 @@ npm run db:schema
 npm run db:seed
 ```
 
-`db:schema` crea las 17 tablas, sus índices, 4 vistas y 2 triggers.
+`db:schema` crea las 21 tablas, sus índices, 4 vistas y 5 triggers.
 `db:seed` inserta 12 usuarios, 6 unidades y 25 emergencias repartidas en los
 últimos 30 días y en los cuatro estados. Ambos comandos son **idempotentes**:
 se pueden repetir para dejar la demostración en su estado inicial.
@@ -277,13 +283,20 @@ Las variables están documentadas una por una en
 | Variable | Descripción |
 |----------|-------------|
 | `PORT` | Puerto del servidor (por defecto 4000). |
+| `PUBLIC_URL` | Origen HTTPS público en producción, para los enlaces de recuperación. En Render no hace falta (usa `RENDER_EXTERNAL_URL`). |
 | `DB_HOST` · `DB_PORT` · `DB_NAME` · `DB_USER` · `DB_PASSWORD` | Conexión a PostgreSQL. |
 | `JWT_SECRET` · `JWT_REFRESH_SECRET` | Claves de firma de los tokens. **Obligatorias.** |
 | `CORS_ORIGIN` | Orígenes permitidos, separados por coma. |
-| `MAX_FILE_SIZE_MB` · `MAX_FILES_PER_EMERGENCY` | Límites de las fotografías. |
+| `MAX_FILE_SIZE_MB` · `MAX_FILES_PER_EMERGENCY` | Límites de las fotografías (el administrador puede bajar el máximo desde Configuración). |
+| `STORAGE_PROVIDER` | `database` (por defecto: fotos en PostgreSQL, sobreviven a los reinicios de Render) o `local` (disco). |
+| `MAIL_PROVIDER` · `MAIL_API_KEY` · `MAIL_FROM` | Correo: `brevo` o `resend` (API HTTP, recomendado en Render) o `smtp` con `SMTP_*`. |
+| `RATE_LIMIT_MAX` · `AUTH_RATE_LIMIT_MAX` | Límite general por usuario y fallos de acceso por cuenta, cada 15 min. |
 | `DEFAULT_LAT` · `DEFAULT_LNG` | Centro del mapa (Villavicencio). |
 
 > ⚠️ El archivo `.env` está en `.gitignore` y **nunca** debe subirse a un repositorio.
+> En un despliegue público deja `CREDENTIALS_SHEET_ENABLED` en `false` y define
+> `PUBLIC_URL` si el proveedor no es Render; las contraseñas compartidas de
+> prueba son únicamente para la base de demostración.
 
 ---
 
@@ -556,9 +569,14 @@ enorme que dispara al primer roce se activaría solo dentro del bolsillo;
 mantener pulsado exige intención. Durante la cuenta atrás se puede soltar para
 cancelar.
 
-Antes de enviar pide la ubicación. Si el GPS falla, pregunta si enviar de todas
-formas y redirige al formulario para escribir la dirección a mano: es preferible
-un aviso sin coordenadas a ningún aviso.
+Antes de enviar pide la ubicación. Si el GPS falla (permiso bloqueado, sin
+señal), ofrece **marcar el punto en el mapa** y lleva al formulario con el mapa
+abierto y la prioridad en crítica. El reporte llega al operador marcado como
+"ubicación marcada a mano (sin GPS)".
+
+Si **no hay internet**, el SOS se guarda en el teléfono y se envía solo al volver
+la señal (con la hora real a la que se pidió ayuda), y se ofrece llamar al 123,
+que va por la red de voz.
 
 ### El ciudadano entra directo a la app
 
@@ -582,6 +600,11 @@ usuario ya dijo que no, no vuelve a aparecer; hay que cambiarla a mano.
 Por eso `js/core/geo.js` no intenta forzarla: distingue los tres casos y, cuando
 no hay ventana del navegador que mostrar, abre una propia con los pasos
 concretos.
+
+En todos los casos el formulario de reporte permite **marcar la ubicación en el
+mapa** (tocando el punto o arrastrando el marcador; con teclado, moviendo el
+mapa con las flechas y usando "Marcar el centro del mapa"). Antes, con el GPS
+bloqueado no había forma de enviar un reporte.
 
 | Caso | Qué se le dice |
 |------|----------------|
@@ -619,6 +642,15 @@ El service worker usa tres estrategias, cada una por un motivo:
 | API | *network first* | Una emergencia con datos viejos sería peligrosa. |
 | Teselas del mapa | *cache first* (máx. 300) | Son inmutables y pesadas. |
 | POST / PATCH / DELETE | nunca se cachean | Son acciones que deben llegar al servidor. |
+
+Las páginas se guardan por su ruta, sin la query (`emergency.html?id=7` usa la
+misma copia que `?id=3`), y una página que nunca se abrió muestra la pantalla
+"Sin conexión" en lugar del error del navegador. Al cerrar sesión se borran las
+respuestas de la API y las fotos guardadas: en un teléfono compartido, el
+siguiente usuario no las ve.
+
+Un reporte enviado sin red queda en IndexedDB **a nombre de quien lo hizo** y se
+envía solo al recuperar la señal.
 
 > Al cambiar un archivo de la lista `PRECACHE`, sube `CACHE_VERSION` en
 > `service-worker.js`. Si no, los navegadores seguirán sirviendo la copia vieja.
@@ -738,10 +770,15 @@ En la app móvil: **Avisos → Activar**. Requiere las mismas condiciones que la
 instalación de la PWA (service worker registrado y contexto seguro), así que
 aplica lo explicado en el apartado anterior sobre `localhost` o HTTPS.
 
-> ⚠️ El envío efectivo a un dispositivo físico **no se ha comprobado** todavía:
-> el navegador del entorno de desarrollo no registra service workers. Lo que sí
-> está verificado es el lado del servidor —las claves se generan, los endpoints
-> responden y la validación de la suscripción funciona—.
+> ✅ Verificado de extremo a extremo en Chrome (23-sep-2026): el botón
+> *Activar* suscribe el navegador en el servicio push real de Google, el servidor
+> envía el aviso y el service worker muestra la notificación en un segundo.
+> Falta probarlo a mano en un teléfono físico (requiere HTTPS o el reenvío de
+> puertos por USB). El administrador puede apagar el envío desde Configuración.
+>
+> Solo se aceptan suscripciones de los servicios push reales (Google, Mozilla,
+> Microsoft, Apple) por HTTPS: el servidor hace un POST a esa URL en cada aviso,
+> y aceptar cualquiera permitiría usarlo para llegar a la red interna (SSRF).
 
 ---
 
@@ -753,12 +790,16 @@ aplica lo explicado en el apartado anterior sobre `localhost` o HTTPS.
 |--------|----------------|
 | Contraseñas expuestas | bcrypt con 12 rondas. El hash **nunca** sale de `user.model.js` salvo en el login. |
 | Sesiones robadas | Dos tokens: acceso de 15 min y refresco de 7 días **con rotación** — usarlo dos veces lo invalida. |
-| Fuerza bruta | 5 intentos por ventana en `/auth/*`. Un SOS tiene su propio límite para que nunca quede bloqueado por el general. |
+| Fuerza bruta | 5 intentos fallidos por cuenta e IP, y un tope por IP para todo `/auth`. Los fallos de una persona no bloquean a quienes comparten su red. |
+| Abuso de la API | Límite general por usuario (por IP sin sesión). El SOS y `/health` quedan fuera: el SOS tiene su propio límite por persona. |
 | Inyección SQL | SQL parametrizado siempre. El único texto que se concatena es la columna de ordenamiento, validada contra lista blanca. |
 | XSS | `escapeHtml()` en todo dato de usuario insertado en HTML. `el()` distingue `text:` (seguro) de `html:`. |
 | Escalada de privilegios | Tres niveles: token válido → rol permitido → registros visibles. El último vive en la capa de servicios. |
 | Cabeceras | Helmet con CSP explícita, `nosniff`, `X-Frame-Options`, sin `X-Powered-By`. |
 | Subida de archivos | Nombre aleatorio (nunca el del usuario), extensión deducida del MIME, lista blanca de tipos, límite de tamaño y cantidad. |
+| Fotos y notas de voz | Enlaces firmados que caducan (6–7 h): solo los recibe quien puede ver la emergencia. Sin firma, `/uploads` responde 403. |
+| Correos | Los nombres que escriben los usuarios se escapan en el HTML del correo. |
+| Redirecciones | `?next=` del login solo acepta rutas del mismo origen (`/\otro-sitio` ya no pasa). |
 | Trazabilidad | `audit_logs` registra accesos, cambios de rol, asignaciones y cambios de estado. |
 
 ### Vulnerabilidad encontrada y corregida
@@ -785,13 +826,20 @@ dentro de atributos `style`.
 
 ### Limitaciones conocidas
 
-- **Las fotografías en `/uploads` no exigen autenticación.** Los nombres son
-  aleatorios de 32 caracteres hexadecimales, así que no se pueden adivinar,
-  pero quien tenga el enlace puede abrirlo. Para producción habría que servirlas
-  a través de un endpoint autenticado o con URLs firmadas que caduquen.
 - **Existe una hoja de accesos con las contraseñas en texto plano.** Es una
-  ayuda deliberada para la sustentación, no una función del sistema. Se explica
-  justo debajo.
+  ayuda deliberada para la sustentación, solo para desarrollo local. En
+  producción el servidor exige `CREDENTIALS_SHEET_ENABLED=false`.
+- **El correo necesita un proveedor.** Sin `MAIL_PROVIDER` (Brevo, Resend o
+  SMTP), la recuperación de contraseña y el aviso a contactos no se entregan en
+  producción; en desarrollo el mensaje (con el enlace) sale en la consola.
+- **Web Push en un teléfono físico falta probarlo a mano** (en Chrome de
+  escritorio está verificado de extremo a extremo). La detección sísmica
+  funciona únicamente con la PWA abierta en primer plano.
+- **Un enlace firmado de una foto sigue sirviendo hasta que caduca** (unas
+  horas), aunque quien lo recibió pierda después el acceso a la emergencia.
+- **Las cuentas y contraseñas de prueba son públicas en este README.** Se
+  destinan a una demostración con datos sintéticos; no se deben reutilizar ni
+  exponer datos personales o incidentes reales en ese despliegue.
 
 ### Hoja de accesos (Excel)
 
@@ -828,21 +876,27 @@ piezas aisladas. Requieren la base de datos y el servidor levantados.
 
 ```bash
 npm test              # API REST + tiempo real
-npm run test:api      # 92 comprobaciones
-npm run test:realtime # 49 comprobaciones
-npm run test:security # 41 comprobaciones
+npm run test:api      # 109 comprobaciones
+npm run test:realtime # 51 comprobaciones
+npm run test:security # 55 comprobaciones
 ```
 
 | Suite | Comprobaciones | Qué cubre |
 |-------|:--------------:|-----------|
-| `tests/api.test.js` | 92 | Autenticación, los 4 roles, validación, SOS, asignaciones, transiciones, estadísticas, mapa, notificaciones, usuarios, auditoría y sesiones. |
-| `tests/realtime.test.js` | 49 | Cuatro clientes simultáneos con roles distintos; verifica que cada evento llegue **solo** a sus destinatarios. |
-| `tests/security.test.js` | 41 | Cabeceras, política de contraseñas, autorización, aislamiento de datos, tokens falsificados, inyección SQL y limitador. |
-| **Total** | **182** | |
+| `tests/api.test.js` | 109 | Autenticación, los 4 roles, validación, SOS, asignaciones, transiciones, estadísticas, mapa, notificaciones, usuarios, auditoría, sesiones, fotos con enlace firmado y configuración que se aplica. |
+| `tests/realtime.test.js` | 51 | Cuatro clientes simultáneos con roles distintos; verifica que cada evento llegue **solo** a sus destinatarios, y que la sesión se recupere tras un corte de red. |
+| `tests/security.test.js` | 55 | Cabeceras, contraseñas, autorización, aislamiento, tokens falsificados, inyección SQL, suscripciones push (SSRF), archivos sin firma y limitadores. |
+| **Total** | **215** | |
 
-> ⚠️ `test:security` **agota el limitador de intentos a propósito**. Ejecútala
-> la última, o reinicia el servidor antes de volver a probar el login: el
-> contador vive en memoria y se limpia al reiniciar.
+> `test:security` agota a propósito el límite de una cuenta **inexistente** y
+> el de una cuenta que crea para eso, así que ya no deja bloqueada ninguna cuenta
+> de la demostración y las suites se pueden correr en cualquier orden. Aun así,
+> lo más limpio es correrla la última: el tope por IP de `/auth` es compartido y
+> los contadores viven en memoria (se limpian al reiniciar el servidor).
+
+Además de estas suites, el 23-sep-2026 se recorrió la interfaz en un navegador
+real (móvil y escritorio, claro y oscuro, teclado, sin red, GPS denegado, push).
+El detalle está en [`documentation/07-VERIFICACION-ENTREGA.md`](documentation/07-VERIFICACION-ENTREGA.md).
 
 La prueba más significativa es la de aislamiento en tiempo real: un ciudadano
 ajeno a un incidente no recibió **ningún** evento relacionado con él, y su
@@ -893,6 +947,8 @@ Detalle en [`documentation/04-PLAN-DE-FASES.md`](documentation/04-PLAN-DE-FASES.
 | La instalación de npm es muy lenta | `node_modules` se sincroniza con OneDrive. | Pausa la sincronización mientras instalas. |
 | `docker compose` no se reconoce | Docker Desktop no está iniciado. | Ábrelo y espera a que diga *Running*, o usa `npm run db:up`, que no necesita Docker. |
 | `No se encontraron los binarios de PostgreSQL` | La descarga de `embedded-postgres` quedó incompleta. | Vuelve a ejecutar `npm install` dentro de `backend/`. |
+| `npm run db:up` falla con `invalid binary` | La carpeta del proyecto está en una ruta demasiado larga para Windows. | Muévela a una ruta corta (por ejemplo `C:\ers`) y repite `npm install` y `npm run db:up`. |
+| `Demasiadas peticiones` al usar el panel | Se agotó el límite general de ese usuario (`RATE_LIMIT_MAX` cada 15 min). | Espera unos minutos o sube `RATE_LIMIT_MAX` en `backend/.env`. El SOS nunca queda bloqueado por este límite. |
 | `npm run db:up` parece colgarse | Estás en una terminal que espera a que el proceso hijo cierre la salida. | Ya está resuelto en `scripts/db-local.js`; si lo modificas, mantén `stdio: 'ignore'` en el `pg_ctl start`. |
 
 ---
@@ -907,13 +963,17 @@ Detalle en [`documentation/04-PLAN-DE-FASES.md`](documentation/04-PLAN-DE-FASES.
 | [04 — Plan de fases](documentation/04-PLAN-DE-FASES.md) | Estado y orden de desarrollo. |
 | [05 — API REST](documentation/05-API-REST.md) | Contrato completo de endpoints. |
 | [06 — Manual de usuario](documentation/06-MANUAL-USUARIO.md) | Guía práctica por rol: ciudadano, personal, operador y administrador. |
+| [07 — Verificación de la entrega](documentation/07-VERIFICACION-ENTREGA.md) | Qué se probó, cómo, qué se corrigió y qué queda por probar a mano. |
 
 ### Entregables académicos
 
 | Archivo | Contenido |
 |---------|-----------|
-| [Documento de avance](documentation/Avance-Proyecto-ERS-Yeifer-Medina.docx) | Informe en norma IEEE con la estructura exigida por la Facultad. |
-| [Presentación](documentation/Presentacion-ERS-Yeifer-Medina.pptx) | 15 diapositivas con notas del ponente. |
+| `Documento-Proyecto-ERS-APA7.docx` y `.pdf` | Documento de proyecto de aula en APA 7.ª edición, con la estructura exigida por la Facultad. |
+| `Presentacion-Proyecto-ERS.pptx` | 12 diapositivas con notas del ponente. |
+
+> La versión final de los entregables acompaña la carpeta de entrega del curso;
+> no se sube al repositorio.
 
 ---
 

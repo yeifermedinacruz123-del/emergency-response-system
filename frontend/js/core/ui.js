@@ -164,12 +164,42 @@ export function modal({ title, content, actions = [], size = 'md', onClose } = {
 
   if (actions.length === 0) footer.remove();
 
+  // Quien tenia el foco antes de abrir: al cerrar se le devuelve, para que
+  // quien usa teclado o lector de pantalla no vuelva al principio de la pagina.
+  const previousFocus = document.activeElement;
+
+  /*
+   * El foco no sale del modal con Tab: si saliera, con teclado se acababa
+   * manejando la pagina que esta detras, oscurecida y sin ver donde se esta.
+   */
+  const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  overlay.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const items = Array.from(dialog.querySelectorAll(FOCUSABLE)).filter((node) => node.offsetParent !== null);
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
+  let closed = false;
   function close() {
+    if (closed) return;
+    closed = true;
     overlay.classList.add('modal-overlay--leaving');
     setTimeout(() => {
       overlay.remove();
       document.body.classList.remove('has-modal');
       if (openModal && openModal.element === overlay) openModal = null;
+      if (previousFocus && document.contains(previousFocus) && typeof previousFocus.focus === 'function') {
+        previousFocus.focus();
+      }
       if (onClose) onClose();
     }, 150);
   }
@@ -178,8 +208,15 @@ export function modal({ title, content, actions = [], size = 'md', onClose } = {
   document.body.classList.add('has-modal');
   openModal = { close, element: overlay };
 
-  // Foco al primer control, para poder usar el modal con el teclado.
-  const focusable = dialog.querySelector('input, select, textarea, button');
+  // Foco al primer campo del formulario; si no hay, al primer boton de
+  // accion; la "x" de cerrar queda como ultimo recurso.
+  let focusable = body.querySelector('input:not([type="hidden"]):not([disabled]), select, textarea')
+    || footer.querySelector('button')
+    || dialog.querySelector('button');
+  // En un grupo de opciones, la marcada (p. ej. la prioridad actual).
+  if (focusable && focusable.type === 'radio') {
+    focusable = body.querySelector(`input[type="radio"][name="${CSS.escape(focusable.name)}"]:checked`) || focusable;
+  }
   if (focusable) focusable.focus();
 
   return { close, element: dialog, body };

@@ -370,7 +370,8 @@ function renderObjetivos(byPriority) {
 
     return `
       <div class="target-row">
-        <span class="target-row__label" style="color: ${escapeHtml(p.color || '#64748b')}">
+        <span class="target-row__label">
+          <span class="target-row__swatch" style="background: ${escapeHtml(p.color || '#64748b')}" aria-hidden="true"></span>
           ${escapeHtml(p.label)}
         </span>
         <div class="target-bar" role="img"

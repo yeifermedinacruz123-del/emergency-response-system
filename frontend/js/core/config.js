@@ -22,8 +22,14 @@ export const CONFIG = Object.freeze({
 
   socket: {
     url: API_ORIGIN || window.location.origin,
-    reconnectionAttempts: 10,
+    /*
+     * Sin limite de reintentos: con 10 el socket se rendia al minuto y el
+     * panel dejaba de actualizarse para siempre (hasta recargar) si el
+     * servidor tardaba en volver, por ejemplo al despertar en Render.
+     */
+    reconnectionAttempts: Infinity,
     reconnectionDelay: 1500,
+    reconnectionDelayMax: 10000,
   },
 
   /** Claves de localStorage / sessionStorage. */

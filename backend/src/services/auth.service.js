@@ -293,6 +293,12 @@ async function forgotPassword(email, req) {
   const user = await userModel.findByEmail(email);
 
   if (user && user.is_active) {
+    const origin = config.server.publicUrl
+      || (!config.isProduction ? `${req.protocol}://${req.get('host')}` : '');
+    if (!origin) {
+      throw ApiError.internal('PUBLIC_URL debe configurarse para recuperar contrasenas en produccion');
+    }
+
     await passwordResetModel.invalidateAllForUser(user.id);
 
     const rawToken = crypto.randomBytes(32).toString('hex');
@@ -302,7 +308,6 @@ async function forgotPassword(email, req) {
       expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
     });
 
-    const origin = `${req.protocol}://${req.get('host')}`;
     const link = `${origin}/reset-password.html?token=${rawToken}`;
 
     /*
@@ -326,9 +331,9 @@ async function forgotPassword(email, req) {
         `${link}\n\n` +
         'Si no fuiste tu, ignora este correo: tu contrasena sigue igual.',
       html:
-        `<p>Hola ${user.first_name},</p>` +
+        `<p>Hola ${mailerService.escapeHtml(user.first_name)},</p>` +
         '<p>Pediste recuperar tu contrasena. Este enlace vale 30 minutos:</p>' +
-        `<p><a href="${link}">${link}</a></p>` +
+        `<p><a href="${mailerService.escapeHtml(link)}">${mailerService.escapeHtml(link)}</a></p>` +
         '<p>Si no fuiste tu, ignora este correo: tu contrasena sigue igual.</p>',
     });
 
@@ -352,15 +357,16 @@ async function forgotPassword(email, req) {
 /** Cambia la contrasena a partir de un token de recuperacion valido. */
 async function resetPassword(token, newPassword, req) {
   const tokenHash = jwtUtils.hashToken(token);
-  const stored = await passwordResetModel.findValid(tokenHash);
+  // Se hashea antes de gastar el enlace: si bcrypt fallara, el enlace
+  // seguiria sirviendo para volver a intentarlo.
+  const newHash = await bcrypt.hash(newPassword, config.security.bcryptSaltRounds);
+  const stored = await passwordResetModel.consume(tokenHash);
 
   if (!stored) {
     throw ApiError.badRequest('El enlace no es valido o ya expiro. Pide uno nuevo.');
   }
 
-  const newHash = await bcrypt.hash(newPassword, config.security.bcryptSaltRounds);
   await userModel.updatePassword(stored.user_id, newHash);
-  await passwordResetModel.markUsed(stored.id);
 
   // Igual que un cambio de contrasena normal: cierra las sesiones abiertas.
   const revoked = await refreshTokenModel.revokeAllForUser(stored.user_id);

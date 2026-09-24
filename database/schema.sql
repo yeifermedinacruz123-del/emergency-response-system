@@ -287,6 +287,7 @@ CREATE TABLE photos (
   file_path     VARCHAR(400) NOT NULL,   -- ruta publica: /uploads/emergencies/...
   mime_type     VARCHAR(60),
   size_bytes    INTEGER,
+  content       BYTEA,                   -- el archivo, si STORAGE_PROVIDER=database
   created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
@@ -460,6 +461,7 @@ CREATE INDEX idx_emerg_sos         ON emergencies (reported_at DESC) WHERE is_so
 CREATE INDEX idx_emerg_active      ON emergencies (reported_at DESC) WHERE NOT is_deleted;
 
 CREATE INDEX idx_photos_emergency  ON photos (emergency_id);
+CREATE INDEX idx_photos_file_name  ON photos (file_name);
 
 CREATE INDEX idx_assign_emergency  ON assignments (emergency_id);
 CREATE INDEX idx_assign_responder  ON assignments (responder_id);

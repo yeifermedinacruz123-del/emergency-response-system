@@ -1,12 +1,17 @@
 /**
  * Subida de fotografias de las emergencias (multer).
  *
- * Almacenamiento LOCAL en backend/uploads/emergencias. La ruta publica se sirve
- * desde /uploads (ver app.js).
+ * Dos almacenamientos, segun STORAGE_PROVIDER:
+ *   database (por defecto)  el archivo queda en memoria y se guarda en la
+ *                           columna photos.content, dentro de la transaccion
+ *                           que crea la emergencia.
+ *   local                   en disco, en backend/uploads/emergencies.
+ * En los dos casos la ruta publica es /uploads/emergencies/<archivo> y la
+ * sirve routes/upload.routes.js, que exige una firma valida.
  *
- * Preparado para produccion: el nombre del archivo y la ruta publica se calculan
- * en un solo lugar, asi que cambiar a S3 o Cloudinary consiste en reemplazar el
- * "storage" de multer sin tocar los controladores.
+ * El nombre del archivo y la ruta publica se calculan en un solo lugar, asi
+ * que cambiar a S3 o Cloudinary consiste en reemplazar el "storage" de multer
+ * sin tocar los controladores.
  *
  * Tres medidas de seguridad:
  *   1. El nombre original del usuario NUNCA se usa como nombre de archivo: se
@@ -25,9 +30,12 @@ const multer = require('multer');
 const { config } = require('../config/env');
 const ApiError = require('../utils/ApiError');
 
-// Carpeta fisica donde se guardan los archivos.
+// Carpeta fisica donde se guardan los archivos (almacenamiento "local", y
+// tambien donde se buscan los subidos antes de pasar a la base de datos).
 const UPLOAD_DIR = path.resolve(__dirname, '../..', config.storage.uploadDir);
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+const IN_DATABASE = config.storage.provider !== 'local';
 
 /** Extension segura deducida del tipo MIME, no del nombre que envio el cliente. */
 const EXTENSION_BY_MIME = {
@@ -41,19 +49,26 @@ const EXTENSION_BY_MIME = {
   'audio/aac': '.aac',
 };
 
-const storage = multer.diskStorage({
-  destination(req, file, callback) {
-    callback(null, UPLOAD_DIR);
-  },
-  filename(req, file, callback) {
-    const unique = crypto.randomBytes(16).toString('hex');
-    // El navegador puede mandar el codec pegado al mimetype (p. ej.
-    // "audio/webm;codecs=opus"): se ignora para buscar la extension.
-    const baseMimeType = file.mimetype.split(';')[0].trim();
-    const extension = EXTENSION_BY_MIME[baseMimeType] || '.bin';
-    callback(null, `ers-${Date.now()}-${unique}${extension}`);
-  },
-});
+/** Nombre aleatorio con la extension que corresponde al tipo MIME. */
+function randomFileName(mimeType) {
+  const unique = crypto.randomBytes(16).toString('hex');
+  // El navegador puede mandar el codec pegado al mimetype (p. ej.
+  // "audio/webm;codecs=opus"): se ignora para buscar la extension.
+  const baseMimeType = mimeType.split(';')[0].trim();
+  const extension = EXTENSION_BY_MIME[baseMimeType] || '.bin';
+  return `ers-${Date.now()}-${unique}${extension}`;
+}
+
+const storage = IN_DATABASE
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+    destination(req, file, callback) {
+      callback(null, UPLOAD_DIR);
+    },
+    filename(req, file, callback) {
+      callback(null, randomFileName(file.mimetype));
+    },
+  });
 
 /**
  * Solo se aceptan los tipos MIME declarados en la configuracion.
@@ -106,12 +121,16 @@ const uploadEmergencyReport = upload.fields([
  * solo haya que tocar esta funcion.
  */
 function toPhotoRecord(file, userId) {
+  // En memoria multer no pone nombre: se genera aqui, con la misma regla.
+  const fileName = file.filename || randomFileName(file.mimetype);
+
   return {
-    file_name: file.filename,
-    file_path: `/uploads/emergencies/${file.filename}`,
+    file_name: fileName,
+    file_path: `/uploads/emergencies/${fileName}`,
     mime_type: file.mimetype,
     size_bytes: file.size,
     uploaded_by: userId,
+    content: file.buffer || null,
   };
 }
 
@@ -126,6 +145,8 @@ function removeUploadedFiles(files = []) {
   const list = Array.isArray(files) ? files : Object.values(files || {}).flat();
 
   list.forEach((file) => {
+    // En memoria (almacenamiento en la base) no hay nada escrito en disco.
+    if (!file.path) return;
     fs.rm(file.path, { force: true }, () => {
       // Si no se puede borrar, no se interrumpe la respuesta al usuario.
     });

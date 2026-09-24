@@ -188,15 +188,11 @@ app.use(
 );
 
 /* ---------------------------------------------------------------------------
- *  Archivos subidos (fotografias de las emergencias)
+ *  Archivos subidos (fotografias y notas de voz de las emergencias)
+ *  No es una carpeta publica: cada enlace lleva una firma que caduca y que
+ *  solo reciben quienes pueden ver la emergencia (ver routes/upload.routes.js).
  * ------------------------------------------------------------------------- */
-app.use(
-  '/uploads',
-  express.static(path.resolve(__dirname, '../uploads'), {
-    maxAge: '7d',
-    fallthrough: true,
-  })
-);
+app.use('/uploads', require('./routes/upload.routes'));
 
 /* ---------------------------------------------------------------------------
  *  API REST
@@ -223,6 +219,10 @@ if (config.frontend.serve) {
    * index.html al pedir "/" y este redireccion nunca se ejecutaria.
    */
   app.get('/', (req, res) => res.redirect('/login.html'));
+
+  // Los navegadores piden /favicon.ico por su cuenta (en el JSON, en las
+  // descargas...). Sin esto cada pagina dejaba un 404 en la consola.
+  app.get('/favicon.ico', (req, res) => res.redirect(301, '/assets/icons/favicon-32.png'));
 
   app.use(
     express.static(frontendPath, {

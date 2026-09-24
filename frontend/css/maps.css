@@ -43,6 +43,12 @@
   border: 1px solid var(--border-soft);
   overflow: hidden;
   background: var(--surface-sunken);
+  /*
+   * Leaflet pone z-index de 400 a 1000 a sus capas y controles. Sin un
+   * contexto propio competian con la cabecera fija (z-index 300) y, al hacer
+   * scroll, el mapa se dibujaba ENCIMA de ella. `isolation` los encierra.
+   */
+  isolation: isolate;
 }
 
 /* ==========================================================================

@@ -400,6 +400,101 @@ async function main() {
   const notFound = await call('GET', '/emergencies/999999', { token: operatorToken });
   check('Emergencia inexistente -> 404', notFound.status === 404, `status ${notFound.status}`);
 
+  console.log('\n===== 17. FOTOGRAFIAS Y ENLACES FIRMADOS =====');
+
+  const ORIGIN = BASE.replace(/\/api$/, '');
+  // PNG valido de 1x1 pixel: basta para recorrer el camino completo.
+  const PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    'base64'
+  );
+
+  /** Formulario multipart como el que manda la PWA. */
+  const reportForm = (title, photoCount) => {
+    const form = new FormData();
+    form.append('title', title);
+    form.append('type', 'OTRA');
+    form.append('latitude', '4.1400');
+    form.append('longitude', '-73.6200');
+    for (let i = 0; i < photoCount; i += 1) {
+      form.append('photos', new Blob([PNG], { type: 'image/png' }), `prueba-${i}.png`);
+    }
+    return form;
+  };
+
+  const withPhoto = await call('POST', '/emergencies', {
+    token: citizenToken, body: reportForm('Prueba de fotografia adjunta', 1), raw: true,
+  });
+  check('POST /emergencies con fotografia -> 201', withPhoto.status === 201, `status ${withPhoto.status}`);
+
+  const photoPath = withPhoto.body?.data?.photos?.[0]?.file_path || '';
+  check('La ruta de la foto sale firmada', /^\/uploads\/emergencies\/.+\?exp=\d+&sig=/.test(photoPath), photoPath);
+
+  const signedFetch = await fetch(`${ORIGIN}${photoPath}`);
+  check('Con la firma la foto se descarga -> 200', signedFetch.status === 200, `status ${signedFetch.status}`);
+  check('Llega con su tipo de imagen',
+    String(signedFetch.headers.get('content-type')).startsWith('image/png'),
+    signedFetch.headers.get('content-type'));
+  const downloaded = Buffer.from(await signedFetch.arrayBuffer());
+  check('El archivo es exactamente el que se subio', downloaded.equals(PNG), `${downloaded.length} bytes`);
+
+  const unsigned = await fetch(`${ORIGIN}${photoPath.split('?')[0]}`);
+  check('Sin firma la foto NO se entrega -> 403', unsigned.status === 403, `status ${unsigned.status}`);
+
+  const tampered = await fetch(`${ORIGIN}${photoPath.replace(/sig=[^&]{4}/, 'sig=AAAA')}`);
+  check('Con la firma alterada -> 403', tampered.status === 403, `status ${tampered.status}`);
+
+  const stale = await fetch(`${ORIGIN}${photoPath.replace(/exp=\d+/, 'exp=1000000000')}`);
+  check('Con la fecha de la firma cambiada -> 403', stale.status === 403, `status ${stale.status}`);
+
+  const outsiderToken = await login('jorge.castro@example.com');
+  const outsider = await call('GET', `/emergencies/${withPhoto.body?.data?.id}`, { token: outsiderToken });
+  check('Otro ciudadano no recibe el enlace (detalle -> 403)', outsider.status === 403,
+    `status ${outsider.status}`);
+
+  console.log('\n===== 18. LA CONFIGURACION SE APLICA =====');
+
+  const outOfRange = await call('PUT', '/settings', {
+    token: adminToken, body: { 'emergency.max_photos': 50 },
+  });
+  check('Un maximo de fotos fuera de rango se rechaza -> 422', outOfRange.status === 422,
+    `status ${outOfRange.status}`);
+
+  const wrongType = await call('PUT', '/settings', { token: adminToken, body: { 'map.zoom': 'lejos' } });
+  check('Un numero invalido se rechaza -> 422', wrongType.status === 422, `status ${wrongType.status}`);
+
+  const wrongPriority = await call('PUT', '/settings', {
+    token: adminToken, body: { 'sos.auto_priority': 'URGENTISIMA' },
+  });
+  check('Una prioridad inexistente se rechaza -> 422', wrongPriority.status === 422,
+    `status ${wrongPriority.status}`);
+
+  const limitOne = await call('PUT', '/settings', {
+    token: adminToken, body: { 'emergency.max_photos': 1, 'sos.auto_priority': 'ALTA' },
+  });
+  check('PUT /settings valido -> 200', limitOne.status === 200, `status ${limitOne.status}`);
+
+  const publicCfg = await call('GET', '/config');
+  check('/api/config refleja el nuevo maximo de fotos', publicCfg.body?.data?.uploads?.maxFiles === 1,
+    JSON.stringify(publicCfg.body?.data?.uploads));
+
+  const twoPhotos = await call('POST', '/emergencies', {
+    token: citizenToken, body: reportForm('Prueba con dos fotografias', 2), raw: true,
+  });
+  check('Con maximo 1, un reporte con 2 fotos se rechaza -> 400', twoPhotos.status === 400,
+    `status ${twoPhotos.status}`);
+
+  const sosWithSetting = await call('POST', '/emergencies/sos', {
+    token: citizenToken, body: { latitude: 4.141, longitude: -73.625 },
+  });
+  check('El SOS entra con la prioridad configurada', sosWithSetting.body?.data?.priority_code === 'ALTA',
+    sosWithSetting.body?.data?.priority_code);
+
+  const restored = await call('PUT', '/settings', {
+    token: adminToken, body: { 'emergency.max_photos': 5, 'sos.auto_priority': 'CRITICA' },
+  });
+  check('La configuracion se restaura', restored.status === 200, `status ${restored.status}`);
+
   console.log('\n==================================================');
   console.log(`  RESULTADO:  ${passed} correctas,  ${failed} fallidas`);
   if (failures.length > 0) {

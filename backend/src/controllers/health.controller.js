@@ -11,6 +11,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const ApiResponse = require('../utils/ApiResponse');
 const { checkConnection } = require('../database');
 const { config } = require('../config/env');
+const settingService = require('../services/setting.service');
 
 const startedAt = Date.now();
 
@@ -37,24 +38,34 @@ const health = asyncHandler(async (req, res) => {
     : ApiResponse.send(res, 503, false, 'El servicio funciona pero la base de datos no responde', payload, null);
 });
 
-/** GET /api/config - parametros publicos que necesita el frontend. */
+/**
+ * GET /api/config - parametros publicos que necesita el frontend.
+ * El mapa y el maximo de fotos salen de la configuracion que el administrador
+ * edita en el panel (con el .env como respaldo).
+ */
 const publicConfig = asyncHandler(async (req, res) => {
+  const [map, maxFiles, pushSetting] = await Promise.all([
+    settingService.getMapSettings(),
+    settingService.getMaxPhotos(),
+    settingService.isPushEnabled(),
+  ]);
+
   return ApiResponse.ok(
     res,
     {
       apiPrefix: config.server.apiPrefix,
       map: {
-        city: config.geo.city,
+        city: map.city,
         department: config.geo.department,
-        center: { lat: config.geo.lat, lng: config.geo.lng },
-        zoom: config.geo.zoom,
+        center: map.center,
+        zoom: map.zoom,
       },
       uploads: {
         maxFileSizeMB: config.storage.maxFileSizeBytes / (1024 * 1024),
-        maxFiles: config.storage.maxFilesPerEmergency,
+        maxFiles,
         allowedTypes: config.storage.allowedMimeTypes,
       },
-      pushEnabled: config.push.enabled,
+      pushEnabled: config.push.enabled && pushSetting,
     },
     'Configuracion publica'
   );

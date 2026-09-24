@@ -17,11 +17,12 @@
 
 import { initMobilePage, vibrate } from './app.js';
 import { api } from '../core/api.js';
+import { session } from '../core/auth.js';
 import { askForLocation, explainLocationProblem, isCoarse } from '../core/geo.js';
 import { $, escapeHtml, timeAgo, getParam } from '../core/utils.js';
 import { notify, notifyApiError, confirmDialog } from '../core/ui.js';
 import * as seismic from './seismic.js';
-import { countQueuedReports } from '../core/offlineQueue.js';
+import { countQueuedReports, queueReport } from '../core/offlineQueue.js';
 
 /** Tiempo que hay que mantener pulsado, en milisegundos. */
 const HOLD_MS = 2000;
@@ -107,8 +108,8 @@ async function sendSos() {
 
     const sendAnyway = await confirmDialog({
       title: 'Sin ubicacion',
-      message: `${location.message}\n\nPuedes enviar el SOS igualmente: el centro de control vera tus datos y te llamara, pero tardara mas en llegar.`,
-      confirmLabel: 'Enviar sin ubicacion',
+      message: `${location.message}\n\nPuedes enviar el SOS igualmente marcando en el mapa donde estas. Si no puedes, llama al 123.`,
+      confirmLabel: 'Marcar en el mapa',
       cancelLabel: 'Cancelar',
       variant: 'danger',
     });
@@ -121,8 +122,7 @@ async function sendSos() {
     }
 
     // El backend exige coordenadas, asi que se envia por el formulario
-    // normal de reporte, donde la ubicacion se puede escribir a mano.
-    notify.info('Describe la emergencia y tu direccion en el formulario.');
+    // normal de reporte, que abre el mapa para marcar el punto a mano.
     window.location.href = '/app/report.html?sos=1';
     return;
   }
@@ -168,10 +168,59 @@ async function sendSos() {
 
     if (error.status === 429) {
       notify.error('Has enviado varios SOS seguidos. Si es una emergencia real, llama al 123.', 10000);
+    } else if (error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT' || !navigator.onLine) {
+      await handleOfflineSos(payload);
     } else {
       notifyApiError(error, 'No se pudo enviar el SOS. Comprueba tu conexion.');
     }
   }
+}
+
+/**
+ * El SOS no llego al servidor por falta de red.
+ *
+ * Dos cosas a la vez, porque ninguna basta sola: se guarda en el telefono
+ * para enviarlo solo en cuanto vuelva la señal (con la hora real a la que se
+ * pidio ayuda), y se ofrece llamar al 123, que va por la red de voz y suele
+ * funcionar donde los datos no llegan.
+ */
+async function handleOfflineSos(payload) {
+  const user = session.get();
+  const at = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+
+  let queued = false;
+  try {
+    await queueReport(
+      {
+        ...payload,
+        description:
+          `SOS activado SIN CONEXION a las ${at}. Se envio automaticamente al ` +
+          'recuperar la señal: la persona pudo haberse movido desde entonces.',
+      },
+      [],
+      null,
+      { userId: user?.id, endpoint: '/emergencies/sos' }
+    );
+    queued = true;
+  } catch {
+    // Sin IndexedDB no hay donde guardarlo: queda la llamada.
+  }
+
+  vibrate([300, 100, 300]);
+
+  const call = await confirmDialog({
+    title: 'Sin conexion',
+    message:
+      (queued
+        ? 'No hay internet. Tu SOS quedo guardado y se enviara solo en cuanto vuelva la señal.'
+        : 'No hay internet y el SOS no se pudo enviar.') +
+      '\n\nSi es una emergencia real, llama ahora a la linea de emergencias.',
+    confirmLabel: 'Llamar al 123',
+    cancelLabel: 'Cerrar',
+    variant: 'danger',
+  });
+
+  if (call) window.location.href = 'tel:123';
 }
 
 /* ==========================================================================
@@ -319,7 +368,7 @@ async function init() {
   // Si el telefono se cerro estando sin conexion, avisa de lo que quedo
   // pendiente. flushOfflineQueue() (en app.js) ya intento reenviarlos solo.
   try {
-    const pending = await countQueuedReports();
+    const pending = await countQueuedReports(user.id);
     if (pending > 0) {
       notify.info(
         pending === 1

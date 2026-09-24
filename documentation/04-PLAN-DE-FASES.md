@@ -7,7 +7,7 @@
 |:----:|--------|------------|:------:|
 | 1 | Análisis y arquitectura | `documentation/01..05` | ✅ |
 | 2 | Estructura del proyecto | Carpetas, `package.json`, servidor base | ✅ |
-| 3 | Base de datos | `schema.sql` (17 tablas, 4 vistas, 2 disparadores) + `seed.sql` | ✅ |
+| 3 | Base de datos | `schema.sql` (21 tablas, 4 vistas, 2 disparadores) + `seed.sql` | ✅ |
 | 4 | Backend y API REST | 66 módulos en 5 capas, ~50 endpoints | ✅ |
 | 5 | Autenticación y roles | JWT con rotación, bcrypt, autorización en 3 niveles | ✅ |
 | 6 | Módulo de emergencias | Ciclo de vida, asignaciones, bitácora | ✅ |

@@ -110,6 +110,9 @@ export function setupInstallBanner() {
    Conexion
    ========================================================================== */
 
+/** true si la pantalla actual usa tiempo real (lo fija initMobilePage). */
+let wantsRealtime = false;
+
 /** Muestra u oculta el aviso de "sin conexion". */
 export function setupOfflineBanner() {
   const banner = $('#offline-banner');
@@ -121,6 +124,8 @@ export function setupOfflineBanner() {
     update();
     notify.success('Conexion restablecida');
     flushOfflineQueue();
+    // Si la pantalla abrio sin red, el tiempo real no llego a conectarse.
+    if (wantsRealtime && !realtime.connected) realtime.connect();
   });
 
   window.addEventListener('offline', () => {
@@ -148,22 +153,32 @@ export async function flushOfflineQueue() {
   flushing = true;
 
   try {
-    const pending = await listQueuedReports();
+    // Solo los del usuario en sesion: cada reporte sale a nombre de quien lo hizo.
+    const user = session.get();
+    if (!user) return;
+
+    const pending = await listQueuedReports(user.id);
     if (pending.length === 0) return;
 
     let sent = 0;
 
     for (const item of pending) {
-      const form = new FormData();
-      Object.entries(item.fields).forEach(([key, value]) => form.append(key, value));
-      item.photos.forEach((file, index) => form.append('photos', file, file.name || `foto-${index}.jpg`));
-      if (item.audio) form.append('audio', item.audio, 'nota-de-voz.webm');
-
       try {
-        // eslint-disable-next-line no-await-in-loop -- se envian uno a uno a
-        // proposito: mandarlos todos a la vez podria saturar una conexion que
-        // recien volvio y es todavia inestable.
-        await api.upload('/emergencies', form);
+        if (item.endpoint === '/emergencies/sos') {
+          // Un SOS guardado sin red: va por su ruta propia, sin archivos.
+          // eslint-disable-next-line no-await-in-loop
+          await api.post('/emergencies/sos', item.fields);
+        } else {
+          const form = new FormData();
+          Object.entries(item.fields).forEach(([key, value]) => form.append(key, value));
+          (item.photos || []).forEach((file, index) => form.append('photos', file, file.name || `foto-${index}.jpg`));
+          if (item.audio) form.append('audio', item.audio, 'nota-de-voz.webm');
+
+          // eslint-disable-next-line no-await-in-loop -- se envian uno a uno a
+          // proposito: mandarlos todos a la vez podria saturar una conexion que
+          // recien volvio y es todavia inestable.
+          await api.upload('/emergencies', form);
+        }
         // eslint-disable-next-line no-await-in-loop
         await removeQueuedReport(item.id);
         sent += 1;
@@ -323,6 +338,8 @@ export async function initMobilePage({ nav, realtime: useRealtime = true } = {})
   if (logoutButton) logoutButton.addEventListener('click', () => logout());
 
   if (useRealtime) {
+    wantsRealtime = true;
+    // No bloquea ni rompe la pantalla si falla (sin red): ver core/socket.js.
     await realtime.connect();
 
     realtime.on('notification:new', (notification) => {

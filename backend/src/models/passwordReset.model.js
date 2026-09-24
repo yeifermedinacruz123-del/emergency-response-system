@@ -39,6 +39,27 @@ async function markUsed(id) {
 }
 
 /**
+ * Busca un token vigente y lo marca como usado EN LA MISMA SENTENCIA.
+ *
+ * Con findValid + markUsed por separado, dos peticiones simultaneas con el
+ * mismo enlace pasaban las dos la comprobacion antes de que ninguna lo
+ * marcara. Un UPDATE ... RETURNING es atomico: solo una recibe la fila.
+ *
+ * @returns {Promise<{id: number, user_id: number}|null>}
+ */
+async function consume(tokenHash) {
+  return queryOne(
+    `UPDATE password_resets
+        SET used_at = NOW()
+      WHERE token_hash = $1
+        AND used_at IS NULL
+        AND expires_at > NOW()
+      RETURNING id, user_id`,
+    [tokenHash]
+  );
+}
+
+/**
  * Invalida cualquier token anterior sin usar del mismo usuario.
  * Pedir varios enlaces seguidos no debe dejar varios validos a la vez.
  */
@@ -51,4 +72,4 @@ async function invalidateAllForUser(userId) {
   );
 }
 
-module.exports = { create, findValid, markUsed, invalidateAllForUser };
+module.exports = { create, findValid, markUsed, consume, invalidateAllForUser };

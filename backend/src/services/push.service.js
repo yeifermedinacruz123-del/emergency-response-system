@@ -23,6 +23,7 @@ const webpush = require('web-push');
 const { config } = require('../config/env');
 const logger = require('../config/logger');
 const subscriptionModel = require('../models/pushSubscription.model');
+const settingService = require('./setting.service');
 
 /** true cuando hay claves y el envio esta habilitado. */
 let ready = false;
@@ -135,6 +136,16 @@ function sendForNotifications(notifications) {
   const list = (Array.isArray(notifications) ? notifications : [notifications]).filter(Boolean);
   if (list.length === 0) return;
 
+  // El administrador puede apagar el push desde Configuracion sin tocar el
+  // .env ni reiniciar: la bandeja y Socket.IO siguen funcionando igual.
+  settingService.isPushEnabled()
+    .then((enabled) => {
+      if (enabled) sendEach(list);
+    })
+    .catch((error) => logger.warn(`Error inesperado enviando push: ${error.message}`));
+}
+
+function sendEach(list) {
   // Un SOS interrumpe: vibra distinto y no se descarta solo.
   const URGENT_TYPES = new Set(['SOS', 'EMERGENCIA_NUEVA']);
 

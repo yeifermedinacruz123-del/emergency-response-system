@@ -67,8 +67,11 @@ async function authenticateSocket(socket, next) {
     if (!user) return next(new Error('La cuenta asociada a la sesion ya no existe'));
     if (!user.is_active) return next(new Error('Tu cuenta esta desactivada'));
 
-    // Queda disponible en todos los manejadores de este socket.
+    // Queda disponible en todos los manejadores de este socket. Tambien va a
+    // socket.data, que es lo unico que Socket.IO conserva al recuperar una
+    // sesion tras un corte de red (socket.user no sobrevive).
     socket.user = user;
+    socket.data.userId = user.id;
     return next();
   } catch (error) {
     // Mensaje corto: el detalle queda en el log del servidor, no en el cliente.
@@ -201,6 +204,14 @@ function createSocketServer(httpServer) {
     pingInterval: 20000,
     connectionStateRecovery: {
       maxDisconnectionDuration: 2 * 60 * 1000,
+      /*
+       * Por defecto Socket.IO se salta los middlewares al recuperar una
+       * sesion. Aqui no puede: authenticateSocket es quien pone socket.user,
+       * y sin el la conexion recuperada fallaba al unirse a sus salas y dejaba
+       * de responder a emergency:subscribe. Ademas asi se vuelve a comprobar
+       * el token y que la cuenta siga activa despues del corte.
+       */
+      skipMiddlewares: false,
     },
   });
 
@@ -222,7 +233,7 @@ function createSocketServer(httpServer) {
         rooms: Array.from(socket.rooms).filter((room) => room !== socket.id),
       });
     } catch (error) {
-      logger.error(`Error al preparar el socket de ${socket.user.email}`, error);
+      logger.error(`Error al preparar el socket de ${socket.user?.email || socket.id}`, error);
       socket.disconnect(true);
     }
   });

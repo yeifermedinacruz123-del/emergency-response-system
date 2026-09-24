@@ -89,7 +89,7 @@
 .kpi__value.is-updated { animation: valueFlash 900ms ease-out; }
 
 @keyframes valueFlash {
-  0%   { color: var(--info); transform: scale(1.08); }
+  0%   { color: var(--info-text); transform: scale(1.08); }
   100% { color: var(--text-strong); transform: scale(1); }
 }
 
@@ -102,6 +102,18 @@
   grid-template-columns: 2fr 1fr;
   gap: var(--space-5);
   align-items: start;
+}
+
+/*
+ * En pantallas de portatil (hasta 1600 px) la tabla de emergencias activas no
+ * cabia junto a la columna de unidades y cortaba "Estado". Ahi la hora del
+ * reporte deja de ser columna y pasa a la linea secundaria de cada fila.
+ */
+.dashboard-grid .compact-only { display: none; }
+
+@media (max-width: 1599px) {
+  .dashboard-grid .wide-only { display: none; }
+  .dashboard-grid .compact-only { display: inline; }
 }
 
 @media (max-width: 1100px) {
@@ -316,7 +328,7 @@
 
 .tracker__step.is-current .tracker__mark {
   border-color: var(--status-proceso);
-  color: var(--status-proceso);
+  color: var(--status-proceso-text);
   animation: pulseCritical 2s ease-in-out infinite;
 }
 

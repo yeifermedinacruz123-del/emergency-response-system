@@ -27,7 +27,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v7';
 const SHELL_CACHE = `ers-shell-${CACHE_VERSION}`;
 const API_CACHE = `ers-api-${CACHE_VERSION}`;
 const TILE_CACHE = `ers-tiles-${CACHE_VERSION}`;
@@ -74,11 +74,17 @@ const PRECACHE = [
   '/js/mobile/notifications.js',
   '/js/mobile/contacts.js',
   '/js/core/offlineQueue.js',
+  '/js/core/push.js',
+  '/js/mobile/offline.js',
   '/js/pages/login.js',
   '/js/pages/register.js',
 
   '/vendor/leaflet/leaflet.js',
   '/vendor/leaflet/leaflet.css',
+
+  // Cliente de Socket.IO que sirve el propio backend. Guardado, la pantalla
+  // abre igual sin red (el tiempo real simplemente espera a que vuelva).
+  '/socket.io/socket.io.esm.min.js',
 
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png',
@@ -132,19 +138,33 @@ self.addEventListener('activate', (event) => {
    Estrategias
    ========================================================================== */
 
-/** Devuelve lo guardado al instante y actualiza por detras. */
-async function staleWhileRevalidate(request, cacheName) {
+/**
+ * Devuelve lo guardado al instante y actualiza por detras.
+ *
+ * Si no hay copia ni red, RECHAZA. Antes devolvia null: respondWith(null) es
+ * un error de red para el navegador y el .catch que debia mostrar la pagina
+ * "Sin conexion" nunca se ejecutaba (se veia el error del propio navegador).
+ *
+ * @param {Request} request
+ * @param {string} cacheName
+ * @param {Request|string} [key] Clave de cache, si no es la propia peticion.
+ */
+async function staleWhileRevalidate(request, cacheName, key = request) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
+  const cached = await cache.match(key);
 
   const network = fetch(request)
     .then((response) => {
-      if (response && response.ok) cache.put(request, response.clone());
+      if (response && response.ok) cache.put(key, response.clone());
       return response;
     })
     .catch(() => null);
 
-  return cached || network || fetch(request);
+  if (cached) return cached;
+
+  const response = await network;
+  if (response) return response;
+  throw new Error('Sin red y sin copia guardada');
 }
 
 /**
@@ -228,8 +248,13 @@ self.addEventListener('fetch', (event) => {
   // PATCH o DELETE, porque son acciones que deben llegar al servidor.
   if (request.method !== 'GET') return;
 
-  // Socket.IO gestiona su propia conexion.
-  if (url.pathname.startsWith('/socket.io/')) return;
+  // Socket.IO gestiona su propia conexion; solo su libreria cliente se guarda.
+  if (url.pathname.startsWith('/socket.io/')) {
+    if (url.pathname.endsWith('.js')) {
+      event.respondWith(staleWhileRevalidate(request, SHELL_CACHE).catch(() => Response.error()));
+    }
+    return;
+  }
 
   // Teselas del mapa (otro origen).
   if (url.hostname.endsWith('tile.openstreetmap.org')) {
@@ -246,9 +271,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Las fotografias subidas no cambian: se guardan al descargarlas.
+  // Las fotografias subidas no cambian: se guardan al descargarlas. Van con
+  // los datos de la API porque son del usuario: al cerrar sesion se borran.
   if (url.pathname.startsWith('/uploads/')) {
-    event.respondWith(cacheFirst(request, SHELL_CACHE));
+    event.respondWith(cacheFirst(request, API_CACHE));
     return;
   }
 
@@ -257,8 +283,15 @@ self.addEventListener('fetch', (event) => {
    * pagina de sin conexion en lugar del error del navegador.
    */
   if (request.mode === 'navigate') {
+    /*
+     * Las paginas se guardan por su ruta, sin la query: /app/emergency.html?id=7
+     * es el mismo HTML que ?id=3 (el id lo lee el JavaScript). Con la query en
+     * la clave, un seguimiento que no se hubiera abierto antes no encontraba
+     * la copia precargada y, sin red, no abria.
+     */
+    const key = `${url.origin}${url.pathname}`;
     event.respondWith(
-      staleWhileRevalidate(request, SHELL_CACHE).catch(() =>
+      staleWhileRevalidate(request, SHELL_CACHE, key).catch(() =>
         caches.match('/app/offline.html')
       )
     );
@@ -266,7 +299,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Resto de archivos de la aplicacion.
-  event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));
+  event.respondWith(staleWhileRevalidate(request, SHELL_CACHE).catch(() => Response.error()));
 });
 
 /* ==========================================================================
@@ -274,9 +307,8 @@ self.addEventListener('fetch', (event) => {
    ========================================================================== */
 
 /**
- * Preparado para la Fase 13 (Firebase Cloud Messaging).
- * El manejador ya funciona con cualquier push que llegue con este formato;
- * lo que falta es el servicio que las envie y las credenciales reales.
+ * Aviso push (Web Push con claves VAPID propias, ver push.service.js).
+ * El servidor manda { title, body, url, tag, urgent }.
  */
 self.addEventListener('push', (event) => {
   if (!event.data) return;

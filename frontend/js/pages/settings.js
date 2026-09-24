@@ -184,7 +184,20 @@ async function save(button) {
     render(settings);
     refreshButtons();
   } catch (error) {
-    notifyApiError(error, 'No se pudo guardar la configuracion');
+    // El backend valida cada opcion (tipo y rango) y dice cual fallo: se
+    // marca ese control en vez de un error generico para todo el formulario.
+    if (error.status === 422 && error.errors?.length) {
+      error.errors.forEach(({ field, message }) => {
+        const input = document.querySelector(`[data-key="${CSS.escape(field)}"]`);
+        if (!input) return;
+        input.classList.add('is-invalid');
+        input.setAttribute('aria-invalid', 'true');
+        input.title = message;
+      });
+      notify.error(error.errors.map((item) => `${item.field}: ${item.message}`).join(' · '), 8000);
+    } else {
+      notifyApiError(error, 'No se pudo guardar la configuracion');
+    }
   } finally {
     done();
   }
@@ -236,6 +249,11 @@ function setupActions() {
 
   form.addEventListener('input', (event) => {
     if (!event.target.dataset.key) return;
+
+    // Al corregir un valor rechazado se quita la marca de error.
+    event.target.classList.remove('is-invalid');
+    event.target.removeAttribute('aria-invalid');
+    event.target.removeAttribute('title');
 
     // La etiqueta de la casilla acompana a su estado.
     if (event.target.dataset.type === 'boolean') {

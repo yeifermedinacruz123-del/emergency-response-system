@@ -38,6 +38,10 @@
   font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   line-height: 1.2;
+  /* Es un <h1>: sin esto heredaria el color oscuro de los titulos y quedaria
+     invisible sobre la cabecera azul oscuro. */
+  color: inherit;
+  margin: 0;
 }
 
 .m-header__subtitle {
@@ -292,6 +296,14 @@
   margin-bottom: var(--space-2);
 }
 
+/* Aviso ya leido: se distingue por el fondo y el peso, no por opacidad (con
+   opacidad el texto bajaba de 4.5:1 y dejaba de cumplir el contraste). */
+.m-card.is-read {
+  background: var(--surface-sunken);
+  box-shadow: none;
+}
+.m-card.is-read .m-card__title { font-weight: var(--weight-regular); }
+
 .m-card__meta {
   display: flex;
   align-items: center;
@@ -335,7 +347,7 @@
   position: relative;
 }
 
-.m-nav__item.is-active { color: var(--brand-500); }
+.m-nav__item.is-active { color: var(--link); }
 
 .m-nav__item.is-active::before {
   content: '';
@@ -423,14 +435,36 @@
   font-size: var(--text-sm);
 }
 
-.location-status[data-state="ok"]      { border-color: var(--success); background: var(--success-bg); color: var(--success); }
-.location-status[data-state="warning"] { border-color: var(--warning); background: var(--warning-bg); color: var(--warning); }
-.location-status[data-state="error"]   { border-color: var(--danger);  background: var(--danger-bg);  color: var(--danger); }
+.location-status[data-state="ok"]      { border-color: var(--success); background: var(--success-bg); color: var(--success-text); }
+.location-status[data-state="warning"] { border-color: var(--warning); background: var(--warning-bg); color: var(--warning-text); }
+.location-status[data-state="error"]   { border-color: var(--danger);  background: var(--danger-bg);  color: var(--danger-text); }
 .location-status[data-state="loading"] { color: var(--text-muted); }
 
 .location-status__icon { font-size: var(--text-lg); line-height: 1; flex-shrink: 0; }
 .location-status__body { flex: 1; min-width: 0; }
 .location-status__coords { font-family: var(--font-mono); font-size: var(--text-xs); }
+
+/* GPS o mapa: dos botones del mismo peso, uno al lado del otro */
+.location-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.location-picker {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.location-picker__map {
+  height: 260px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+  isolation: isolate; /* que Leaflet no pase por encima de la cabecera fija */
+}
 
 /* ---------- Fotografias ---------- */
 
@@ -544,7 +578,7 @@
 
 .m-tracker__step.is-current .m-tracker__mark {
   border-color: var(--status-proceso);
-  color: var(--status-proceso);
+  color: var(--status-proceso-text);
   animation: pulseCritical 2s ease-in-out infinite;
 }
 
@@ -587,7 +621,7 @@
   border-radius: var(--radius-md);
   background: var(--info-bg);
   border: 1px solid var(--info);
-  color: var(--info);
+  color: var(--info-text);
   font-size: var(--text-sm);
 }
 .install-banner.is-visible { display: flex; animation: slideUp 260ms ease; }
@@ -600,7 +634,7 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   background: var(--warning-bg);
-  color: var(--warning);
+  color: var(--warning-text);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
   text-align: center;

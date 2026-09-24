@@ -76,6 +76,28 @@ function validate() {
   return valid;
 }
 
+/**
+ * ?next= puede venir de requireAuth. Solo se acepta una ruta de este mismo
+ * sitio: si se admitiera cualquier URL, un enlace malicioso podria mandar al
+ * usuario a otro sitio despues de iniciar sesion (open redirect).
+ *
+ * Se resuelve con URL y se compara el origen, en vez de mirar si empieza por
+ * "/": el navegador trata "/\otro-sitio.com" como "//otro-sitio.com", y esa
+ * comprobacion lo dejaba pasar.
+ *
+ * @returns {string|null} Ruta interna segura, o null.
+ */
+function safeNext(next) {
+  if (!next) return null;
+  try {
+    const target = new URL(next, window.location.origin);
+    if (target.origin !== window.location.origin) return null;
+    return `${target.pathname}${target.search}${target.hash}`;
+  } catch {
+    return null;
+  }
+}
+
 /** Envio del formulario. */
 async function handleSubmit(event) {
   event.preventDefault();
@@ -88,15 +110,7 @@ async function handleSubmit(event) {
   try {
     const user = await login(emailInput.value.trim(), passwordInput.value);
 
-    /*
-     * ?next= puede venir de requireAuth. Solo se acepta una ruta interna:
-     * si se admitiera cualquier URL, un enlace malicioso podria mandar al
-     * usuario a otro sitio despues de iniciar sesion (open redirect).
-     */
-    const next = getParam('next');
-    const isInternal = next && next.startsWith('/') && !next.startsWith('//');
-
-    window.location.href = isInternal ? next : homeForRole(user.role_code);
+    window.location.href = safeNext(getParam('next')) || homeForRole(user.role_code);
   } catch (error) {
     restore();
 
@@ -126,6 +140,12 @@ function init() {
   if (redirectIfAuthenticated()) return;
 
   form.addEventListener('submit', handleSubmit);
+
+  // api.js manda aqui con ?expired=1 cuando la sesion ya no se pudo renovar:
+  // sin este aviso, el usuario aparecia en el login sin saber por que.
+  if (getParam('expired') === '1') {
+    showAlert('Tu sesion expiro. Inicia sesion de nuevo para continuar.');
+  }
 
   // Al escribir se limpia el error anterior: no tiene sentido mantenerlo.
   [emailInput, passwordInput].forEach((input) => {

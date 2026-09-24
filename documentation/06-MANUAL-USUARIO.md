@@ -41,7 +41,8 @@ en el teléfono (ver [Instalar la app](#instalar-la-app-en-el-teléfono)).
 4. En **descripción**, cuenta lo que ayuda al personal a prepararse: cuántas
    personas hay, si hay heridos, qué se ve.
 5. La **ubicación** se toma sola. Si el recuadro está en rojo, toca
-   *«Actualizar mi ubicación»* y acepta el permiso del navegador.
+   *«Usar mi GPS»* y acepta el permiso del navegador, o toca
+   *«Marcar en el mapa»* y señala el lugar (puedes arrastrar el marcador).
 6. Añade **fotografías** si puedes: hasta cinco, desde la cámara o la galería.
 7. Elige la **urgencia**. Si dudas, deja la que viene: el operador puede
    cambiarla al revisar el reporte.
@@ -50,8 +51,13 @@ en el teléfono (ver [Instalar la app](#instalar-la-app-en-el-teléfono)).
 Al enviar, pasas directo a la pantalla de seguimiento.
 
 > **Sobre la ubicación.** Sin ella no se puede enviar el reporte: es lo que
-> permite que el personal te encuentre. Si el GPS falla, escribe la dirección
-> más exacta que puedas en el campo correspondiente.
+> permite que el personal te encuentre. Si el GPS falla o bloqueaste el permiso,
+> márcala en el mapa y escribe además la dirección más exacta que puedas. El
+> operador verá que la ubicación se marcó a mano.
+
+> **Sin internet.** Si al enviar no hay conexión, el reporte (con sus fotos) se
+> guarda en el teléfono y se envía solo cuando vuelva la señal. Se envía a tu
+> nombre aunque otra persona abra la app después en ese teléfono.
 
 ## Usar el botón SOS
 
@@ -67,9 +73,12 @@ un formulario**.
 > **¿Por qué hay que mantenerlo pulsado?** Para que no se dispare solo dentro
 > del bolsillo. Un toque accidental enviaría una falsa alarma.
 
-> **Si el GPS falla**, el sistema te pregunta si quieres enviarlo igual y te
-> lleva al formulario para que escribas la dirección. Un aviso sin coordenadas
-> es mejor que ningún aviso.
+> **Si el GPS falla**, el sistema te ofrece marcar en el mapa dónde estás y te
+> lleva al formulario con el mapa abierto y la prioridad en crítica.
+
+> **Si no hay internet**, el SOS se guarda en el teléfono y se envía solo en
+> cuanto vuelva la señal, indicando la hora real a la que pediste ayuda. En ese
+> momento la app te ofrece llamar al **123**, que funciona por la red de voz.
 
 ## Seguir tu reporte
 
@@ -262,9 +271,11 @@ cambios de estado. Se puede filtrar por usuario, acción y rango de fechas.
 
 ## Configuración
 
-En **Configuración** se ajustan parámetros sin tocar archivos ni reiniciar:
-nombre del sistema, ciudad, centro y zoom del mapa, prioridad automática del
-SOS y máximo de fotografías por emergencia.
+En **Configuración** se ajustan parámetros sin tocar archivos ni reiniciar, y
+se aplican de inmediato: centro y zoom del mapa (panel y app), ciudad,
+prioridad con la que entra un SOS, máximo de fotografías por emergencia (hasta
+el tope del servidor) y el envío de notificaciones push. Un valor fuera de
+rango se rechaza y el campo queda marcado en rojo.
 
 ---
 
@@ -273,9 +284,10 @@ SOS y máximo de fotografías por emergencia.
 | Lo que ves | Qué pasa | Qué hacer |
 |------------|----------|-----------|
 | «Correo o contraseña incorrectos» | Las credenciales no coinciden | Verifica el correo. El mensaje es el mismo aunque el correo no exista, por seguridad |
-| «Demasiados intentos» | Cinco intentos fallidos seguidos | Espera unos minutos |
+| «Demasiados intentos con esta cuenta» | Cinco intentos fallidos con ese correo | Espera unos minutos. Las demás cuentas pueden seguir entrando |
 | «Tu cuenta está desactivada» | Un administrador la desactivó | Contacta al administrador |
-| El punto dice «Sin conexión» | Se perdió el canal en vivo | Recarga la página |
+| El punto dice «Sin conexión» | Se perdió el canal en vivo | Se reconecta solo al volver la red; si tarda, recarga la página |
+| «Tu sesión expiró» en la pantalla de acceso | No se pudo renovar la sesión | Vuelve a entrar |
 | Te devuelve al acceso de repente | La sesión expiró o se recargaron los datos de demostración | Vuelve a entrar |
 | El mapa sale en gris | Sin acceso a internet para las teselas | El resto del sistema sigue funcionando |
 | No aparece «Instalar» | No estás en HTTPS ni en `localhost` | Ver el README, apartado de instalación en Android |

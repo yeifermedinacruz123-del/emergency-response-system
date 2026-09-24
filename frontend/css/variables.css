@@ -30,13 +30,20 @@
   --surface-inverse: var(--brand-800);
   --surface-overlay: rgba(11, 18, 32, 0.55);
 
-  /* ---------- Texto ---------- */
+  /* ---------- Texto ----------
+     muted y subtle se oscurecieron para cumplir WCAG AA (4.5:1): los
+     anteriores (#64748b y #94a3b8) daban 4.2:1 y 2.6:1 sobre las superficies
+     del sistema, y la auditoria con axe los marcaba en todas las pantallas. */
   --text-strong: #0f172a;
   --text-base: #1f2937;
-  --text-muted: #64748b;
-  --text-subtle: #94a3b8;
+  --text-muted: #526074;
+  --text-subtle: #5b6779;
   --text-inverse: #f8fafc;
   --text-on-accent: #ffffff;
+
+  /* Enlaces y elementos activos (legible en claro y en oscuro). */
+  --link: var(--brand-500);
+  --link-hover: var(--brand-400);
 
   /* ---------- Bordes ---------- */
   --border-soft: #e2e8f0;
@@ -64,7 +71,7 @@
   --priority-critica-bg: #fee2e2;
 
   /* ---------- Semanticos ---------- */
-  --success: #16a34a;
+  --success: #15803d;
   --success-bg: #dcfce7;
   --warning: #f59e0b;
   --warning-bg: #fef3c7;
@@ -72,6 +79,23 @@
   --danger-bg: #fee2e2;
   --info: #2563eb;
   --info-bg: #dbeafe;
+
+  /* ---------- Colores para TEXTO sobre su fondo tintado ----------
+     Los de arriba sirven de relleno (puntos, bordes, botones). Como color de
+     letra no alcanzaban el contraste minimo: el ambar de "Pendiente" sobre su
+     fondo daba 1.9:1. Estas variantes pasan de 4.5:1 en ambos temas. */
+  --success-text: #166534;
+  --warning-text: #92400e;
+  --danger-text: #b91c1c;
+  --info-text: #1d4ed8;
+  --status-pendiente-text: var(--warning-text);
+  --status-proceso-text: var(--info-text);
+  --status-resuelto-text: var(--success-text);
+  --status-cancelado-text: #475569;
+  --priority-baja-text: #0369a1;
+  --priority-media-text: var(--warning-text);
+  --priority-alta-text: #9a3412;
+  --priority-critica-text: var(--danger-text);
 
   /* ---------- Tipos de emergencia (marcadores y badges) ---------- */
   --type-medica: #dc2626;
@@ -164,7 +188,20 @@
   --text-strong: #f1f5f9;
   --text-base: #e2e8f0;
   --text-muted: #94a3b8;
-  --text-subtle: #64748b;
+  --text-subtle: #8b98ad;
+
+  /* El azul de marca (#274270) sobre fondo oscuro daba 1.7:1: los enlaces
+     y la pestaña activa de la PWA casi no se veian. */
+  --link: #8fb0e6;
+  --link-hover: #b3cbf2;
+
+  --success-text: #4ade80;
+  --warning-text: #fbbf24;
+  --danger-text: #fca5a5;
+  --info-text: #93c5fd;
+  --status-cancelado-text: #cbd5e1;
+  --priority-baja-text: #7dd3fc;
+  --priority-alta-text: #fdba74;
 
   --border-soft: #1e293b;
   --border-base: #334155;

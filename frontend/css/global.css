@@ -26,9 +26,9 @@ code, kbd, pre, samp { font-family: var(--font-mono); font-size: 0.95em; }
 
 .text-muted   { color: var(--text-muted); }
 .text-subtle  { color: var(--text-subtle); }
-.text-danger  { color: var(--danger); }
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
+.text-danger  { color: var(--danger-text); }
+.text-success { color: var(--success-text); }
+.text-warning { color: var(--warning-text); }
 .text-center  { text-align: center; }
 .text-right   { text-align: right; }
 
@@ -40,13 +40,13 @@ code, kbd, pre, samp { font-family: var(--font-mono); font-size: 0.95em; }
 /* ---------- Enlaces ---------- */
 
 a.link {
-  color: var(--brand-400);
+  color: var(--link);
   font-weight: var(--weight-medium);
   transition: color var(--transition-fast);
 }
 
 a.link:hover {
-  color: var(--brand-500);
+  color: var(--link-hover);
   text-decoration: underline;
 }
 

@@ -22,8 +22,6 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const selfsigned = require('selfsigned');
-
 const CERT_DIR = path.resolve(__dirname, '../certs');
 const KEY_FILE = path.join(CERT_DIR, 'server.key');
 const CRT_FILE = path.join(CERT_DIR, 'server.crt');
@@ -42,6 +40,14 @@ function localAddresses() {
 }
 
 async function build() {
+  /*
+   * `selfsigned` se carga aqui y no arriba del archivo: el servidor importa
+   * este modulo en cada arranque solo para leer el certificado (loadCert), y
+   * cargar la libreria costaba unos seis segundos de espera sin necesidad.
+   * Tambien evita depender de una devDependency para arrancar.
+   */
+  // eslint-disable-next-line global-require
+  const selfsigned = require('selfsigned');
   const ips = localAddresses();
 
   /*

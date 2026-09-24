@@ -83,10 +83,10 @@
   background: none;
   border: none;
   padding: 0;
-  color: var(--brand-500);
+  color: var(--link);
   text-decoration: underline;
 }
-.btn--link:hover:not(:disabled) { color: var(--brand-400); }
+.btn--link:hover:not(:disabled) { color: var(--link-hover); }
 
 .btn--sm  { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
 .btn--lg  { padding: var(--space-3) var(--space-6); font-size: var(--text-md); }
@@ -130,27 +130,27 @@
 }
 
 .badge--outline { border-color: rgba(255, 255, 255, 0.25); color: var(--brand-300); }
-.badge--info    { background: var(--info-bg);    color: var(--info); }
-.badge--success { background: var(--success-bg); color: var(--success); }
-.badge--warning { background: var(--warning-bg); color: var(--warning); }
-.badge--danger  { background: var(--danger-bg);  color: var(--danger); }
+.badge--info    { background: var(--info-bg);    color: var(--info-text); }
+.badge--success { background: var(--success-bg); color: var(--success-text); }
+.badge--warning { background: var(--warning-bg); color: var(--warning-text); }
+.badge--danger  { background: var(--danger-bg);  color: var(--danger-text); }
 .badge--neutral { background: var(--surface-sunken); color: var(--text-muted); }
 
 /* Estados de una emergencia: el color lo define el catalogo de la base. */
-.badge--status[data-status="PENDIENTE"]  { background: var(--status-pendiente-bg); color: var(--status-pendiente); }
-.badge--status[data-status="EN_PROCESO"] { background: var(--status-proceso-bg);   color: var(--status-proceso); }
-.badge--status[data-status="RESUELTO"]   { background: var(--status-resuelto-bg);  color: var(--status-resuelto); }
-.badge--status[data-status="CANCELADO"]  { background: var(--status-cancelado-bg); color: var(--status-cancelado); }
+.badge--status[data-status="PENDIENTE"]  { background: var(--status-pendiente-bg); color: var(--status-pendiente-text); }
+.badge--status[data-status="EN_PROCESO"] { background: var(--status-proceso-bg);   color: var(--status-proceso-text); }
+.badge--status[data-status="RESUELTO"]   { background: var(--status-resuelto-bg);  color: var(--status-resuelto-text); }
+.badge--status[data-status="CANCELADO"]  { background: var(--status-cancelado-bg); color: var(--status-cancelado-text); }
 
 /* Prioridades. */
-.badge--priority[data-priority="BAJA"]    { background: var(--priority-baja-bg);    color: var(--priority-baja); }
-.badge--priority[data-priority="MEDIA"]   { background: var(--priority-media-bg);   color: var(--priority-media); }
-.badge--priority[data-priority="ALTA"]    { background: var(--priority-alta-bg);    color: var(--priority-alta); }
-.badge--priority[data-priority="CRITICA"] { background: var(--priority-critica-bg); color: var(--priority-critica); }
+.badge--priority[data-priority="BAJA"]    { background: var(--priority-baja-bg);    color: var(--priority-baja-text); }
+.badge--priority[data-priority="MEDIA"]   { background: var(--priority-media-bg);   color: var(--priority-media-text); }
+.badge--priority[data-priority="ALTA"]    { background: var(--priority-alta-bg);    color: var(--priority-alta-text); }
+.badge--priority[data-priority="CRITICA"] { background: var(--priority-critica-bg); color: var(--priority-critica-text); }
 
 /* Disponibilidad del personal. */
-.badge--responder[data-status="DISPONIBLE"]        { background: var(--success-bg); color: var(--success); }
-.badge--responder[data-status="OCUPADO"]           { background: var(--warning-bg); color: var(--warning); }
+.badge--responder[data-status="DISPONIBLE"]        { background: var(--success-bg); color: var(--success-text); }
+.badge--responder[data-status="OCUPADO"]           { background: var(--warning-bg); color: var(--warning-text); }
 .badge--responder[data-status="FUERA_DE_SERVICIO"] { background: var(--surface-sunken); color: var(--text-muted); }
 
 /** Distintivo del SOS: lo unico de la interfaz que parpadea, y a proposito. */
@@ -265,8 +265,8 @@
 .live-dot__dot[data-state="wait"] { background: var(--warning); }
 .live-dot__dot[data-state="off"]  { background: var(--danger); }
 
-.live-dot[data-state="ok"]  { color: var(--success); }
-.live-dot[data-state="off"] { color: var(--danger); }
+.live-dot[data-state="ok"]  { color: var(--success-text); }
+.live-dot[data-state="off"] { color: var(--danger-text); }
 
 @keyframes livePulse {
   0%, 100% { opacity: 1; }
@@ -465,7 +465,7 @@ body.has-modal { overflow: hidden; }
 
 .table-message__text { font-size: var(--text-sm); color: var(--text-muted); }
 
-.table-message--error .table-message__title { color: var(--danger); }
+.table-message--error .table-message__title { color: var(--danger-text); }
 
 .spinner--inline {
   width: 14px;
@@ -768,7 +768,7 @@ a.notif:hover { background: var(--surface-sunken); }
   border-left: 3px solid var(--info);
   border-radius: var(--radius-sm);
   background: var(--info-bg);
-  color: var(--info);
+  color: var(--info-text);
   font-size: var(--text-sm);
   line-height: 1.5;
 }

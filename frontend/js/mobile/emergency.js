@@ -212,7 +212,7 @@ function summaryHtml() {
     <section class="m-section">
       <div class="card" style="text-align: center; background: var(--success-bg); border-color: var(--success);">
         <p style="font-size: var(--text-2xl);" aria-hidden="true">✅</p>
-        <p style="font-weight: var(--weight-semibold); color: var(--success); margin: var(--space-2) 0;">
+        <p style="font-weight: var(--weight-semibold); color: var(--success-text); margin: var(--space-2) 0;">
           Emergencia resuelta
         </p>
         <p style="font-size: var(--text-sm); color: var(--text-muted);">

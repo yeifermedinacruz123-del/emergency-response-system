@@ -12,6 +12,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const ApiResponse = require('../utils/ApiResponse');
 const notificationService = require('../services/notification.service');
 const pushService = require('../services/push.service');
+const settingService = require('../services/setting.service');
 const subscriptionModel = require('../models/pushSubscription.model');
 const ApiError = require('../utils/ApiError');
 
@@ -45,7 +46,8 @@ const markAllAsRead = asyncHandler(async (req, res) => {
 
 /** GET /api/notifications/push-key - clave publica VAPID para suscribirse. */
 const pushKey = asyncHandler(async (req, res) => {
-  const key = pushService.getPublicKey();
+  // Apagado desde Configuracion equivale a no tener claves: no se ofrece.
+  const key = (await settingService.isPushEnabled()) ? pushService.getPublicKey() : null;
 
   return ApiResponse.ok(
     res,
@@ -53,6 +55,33 @@ const pushKey = asyncHandler(async (req, res) => {
     key ? 'Clave publica de notificaciones' : 'Las notificaciones push no estan configuradas'
   );
 });
+
+/**
+ * Servicios de push de los navegadores. El endpoint de una suscripcion es una
+ * URL a la que ESTE servidor hace un POST cada vez que envia un aviso; si se
+ * aceptara cualquiera, un usuario podria registrar una direccion interna
+ * (http://localhost:5432, la red del proveedor...) y usar el servidor para
+ * atacarla. Solo se admiten los servicios reales, siempre por HTTPS.
+ */
+const PUSH_SERVICE_HOSTS = [
+  'fcm.googleapis.com', // Chrome, Edge Android, Samsung Internet, Opera
+  'android.googleapis.com',
+  'push.services.mozilla.com', // Firefox
+  'notify.windows.com', // Edge en Windows
+  'push.apple.com', // Safari
+];
+
+function isPushServiceEndpoint(endpoint) {
+  try {
+    const url = new URL(endpoint);
+    return url.protocol === 'https:'
+      && !url.username
+      && !url.password
+      && PUSH_SERVICE_HOSTS.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`));
+  } catch {
+    return false;
+  }
+}
 
 /**
  * POST /api/notifications/subscribe
@@ -65,6 +94,15 @@ const subscribe = asyncHandler(async (req, res) => {
     throw ApiError.badRequest(
       'La suscripcion debe incluir endpoint y las claves p256dh y auth que genera el navegador'
     );
+  }
+
+  if (typeof endpoint !== 'string' || endpoint.length > 1000 || !isPushServiceEndpoint(endpoint)) {
+    throw ApiError.badRequest('El endpoint no pertenece a un servicio de notificaciones reconocido');
+  }
+
+  if (typeof keys.p256dh !== 'string' || typeof keys.auth !== 'string'
+      || keys.p256dh.length > 200 || keys.auth.length > 100) {
+    throw ApiError.badRequest('Las claves de la suscripcion no tienen un formato valido');
   }
 
   const saved = await subscriptionModel.save({
@@ -86,7 +124,8 @@ const unsubscribe = asyncHandler(async (req, res) => {
   const { endpoint } = req.body || {};
   if (!endpoint) throw ApiError.badRequest('Falta el endpoint de la suscripcion');
 
-  const removed = await subscriptionModel.removeByEndpoint(endpoint);
+  // Solo las suscripciones propias: nadie da de baja el telefono de otro.
+  const removed = await subscriptionModel.removeByEndpoint(endpoint, req.user.id);
 
   return ApiResponse.ok(
     res,

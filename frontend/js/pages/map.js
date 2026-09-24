@@ -22,6 +22,9 @@ let emergencyLayer = null;
 let unitLayer = null;
 let heatLayer = null;
 
+/** Centro y zoom de Configuracion (llegan con /emergencies/map). */
+let configuredView = {};
+
 /** Ultimos datos recibidos, para poder repintar la lista sin volver a pedir. */
 let currentEmergencies = [];
 let currentUnits = [];
@@ -62,7 +65,12 @@ async function loadMapData({ fit = false } = {}) {
     renderList();
     updateBadge();
 
-    if (fit) fitToMarkers(map, [emergencyLayer, unitLayer]);
+    // Centro configurado por el administrador, para cuando no hay puntos.
+    if (data.center && Number.isFinite(data.center.lat) && Number.isFinite(data.center.lng)) {
+      configuredView = { center: [data.center.lat, data.center.lng], zoom: data.zoom };
+    }
+
+    if (fit) fitToMarkers(map, [emergencyLayer, unitLayer], configuredView);
   } catch (error) {
     notifyApiError(error, 'No se pudieron cargar los datos del mapa');
   }
@@ -241,7 +249,7 @@ function setupControls() {
   });
 
   $('#btn-fit').addEventListener('click', () => {
-    fitToMarkers(map, [emergencyLayer, unitLayer]);
+    fitToMarkers(map, [emergencyLayer, unitLayer], configuredView);
   });
 
   $('#btn-refresh').addEventListener('click', () => loadMapData({ fit: true }));

@@ -85,7 +85,7 @@ function emergencyRow(emergency) {
           <span class="type-tag__icon" aria-hidden="true">${emergency.type_icon || '⚠'}</span>
           <span class="cell-stack">
             <strong class="cell-truncate">${escapeHtml(emergency.title)}</strong>
-            <small>${escapeHtml(emergency.address || emergency.zone_name || 'Sin direccion')}</small>
+            <small>${escapeHtml(emergency.address || emergency.zone_name || 'Sin direccion')}<span class="compact-only"> · ${escapeHtml(timeAgo(emergency.reported_at))}</span></small>
           </span>
         </div>
       </td>
@@ -100,7 +100,7 @@ function emergencyRow(emergency) {
           ${escapeHtml(emergency.status_name)}
         </span>
       </td>
-      <td class="table__col-narrow cell-time" title="${escapeHtml(formatDateTime(emergency.reported_at))}">
+      <td class="table__col-narrow cell-time wide-only" title="${escapeHtml(formatDateTime(emergency.reported_at))}">
         ${escapeHtml(timeAgo(emergency.reported_at))}
       </td>
     </tr>`;
@@ -185,7 +185,7 @@ async function loadUnits() {
       ? items.map(unitItem).join('')
       : '<p class="table-message__text" style="padding: var(--space-6);">No hay unidades registradas.</p>';
   } catch (error) {
-    list.innerHTML = `<p class="table-message__text" style="padding: var(--space-6); color: var(--danger);">
+    list.innerHTML = `<p class="table-message__text" style="padding: var(--space-6); color: var(--danger-text);">
       ${escapeHtml(error.message)}</p>`;
   }
 }

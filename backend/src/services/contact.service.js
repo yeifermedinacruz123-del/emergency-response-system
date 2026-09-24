@@ -51,24 +51,29 @@ async function notifyOnSos(reporter, emergency) {
       ? `https://www.google.com/maps/dir/?api=1&destination=${emergency.latitude},${emergency.longitude}`
       : null;
 
+    // Los nombres los escribe cada usuario: en la version HTML se escapan
+    // para que nadie pueda meter enlaces o etiquetas en el correo de otro.
+    const esc = mailerService.escapeHtml;
+    const reporterName = `${reporter.first_name} ${reporter.last_name}`;
+
     await Promise.all(
       withEmail.map((contact) =>
         mailerService.sendMail({
           to: contact.email,
-          subject: `${reporter.first_name} ${reporter.last_name} activo una alerta SOS`,
+          subject: `${reporterName} activo una alerta SOS`,
           text:
             `Hola ${contact.full_name},\n\n` +
-            `${reporter.first_name} ${reporter.last_name} te tiene como contacto de confianza ` +
+            `${reporterName} te tiene como contacto de confianza ` +
             `y acaba de activar una alerta SOS (${emergency.code}) en el Emergency Response System.\n` +
             (mapsLink ? `Ubicacion: ${mapsLink}\n\n` : '\n') +
             `Telefono de ${reporter.first_name}: ${reporter.phone || 'no registrado'}.\n\n` +
             'El centro de control ya fue notificado.',
           html:
-            `<p>Hola ${contact.full_name},</p>` +
-            `<p><strong>${reporter.first_name} ${reporter.last_name}</strong> te tiene como contacto de confianza ` +
-            `y acaba de activar una alerta SOS (<strong>${emergency.code}</strong>) en el Emergency Response System.</p>` +
-            (mapsLink ? `<p><a href="${mapsLink}">Ver ubicacion en el mapa</a></p>` : '') +
-            `<p>Telefono de ${reporter.first_name}: ${reporter.phone || 'no registrado'}.</p>` +
+            `<p>Hola ${esc(contact.full_name)},</p>` +
+            `<p><strong>${esc(reporterName)}</strong> te tiene como contacto de confianza ` +
+            `y acaba de activar una alerta SOS (<strong>${esc(emergency.code)}</strong>) en el Emergency Response System.</p>` +
+            (mapsLink ? `<p><a href="${esc(mapsLink)}">Ver ubicacion en el mapa</a></p>` : '') +
+            `<p>Telefono de ${esc(reporter.first_name)}: ${esc(reporter.phone || 'no registrado')}.</p>` +
             '<p>El centro de control ya fue notificado.</p>',
         })
       )

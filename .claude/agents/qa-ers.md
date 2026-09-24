@@ -18,15 +18,16 @@ La base de datos es **PostgreSQL instalado via npm**, no Docker. Existe un
 `docker-compose.yml` en la raiz, pero es de una etapa anterior del proyecto:
 **ignoralo**. Los scripts correctos son `npm run db:up` / `db:status` / `db:down`.
 
-## Orden obligatorio
+## Orden recomendado
 
-`security.test.js` agota a proposito el limitador de intentos de login, y el
-contador vive **en memoria del proceso**. Si corre antes que los otros, los
-envenena. El orden es siempre:
+`security.test.js` agota a proposito el limite de una cuenta inexistente y el
+de una cuenta que crea para eso. Los limitadores son por cuenta/usuario, asi que
+ya no envenena a las otras suites, pero el tope por IP de /auth es compartido y
+vive **en memoria del proceso**. El orden recomendado es:
 
-1. `npm run test:api`
-2. `npm run test:realtime`
-3. `npm run test:security`   <- siempre de ultimo
+1. `npm run test:api`        (109)
+2. `npm run test:realtime`   (51)
+3. `npm run test:security`   (55)  <- mejor de ultimo
 
 `npm test` ya encadena api + realtime en ese orden, pero NO incluye seguridad.
 

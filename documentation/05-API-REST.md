@@ -36,14 +36,21 @@
 | GET | `/map` | 🔒 operador, admin | Puntos activos optimizados para el mapa. |
 | GET | `/:id` | 🔒 según rol | Detalle completo: usuario, ubicación, fotos, historial, asignaciones. |
 | POST | `/` | 🔒 ciudadano, operador, admin | Crea una emergencia (`multipart/form-data` con fotos). |
-| POST | `/sos` | 🔒 ciudadano | Crea una emergencia SOS con prioridad CRÍTICA. |
+| POST | `/sos` | 🔒 ciudadano | Crea una emergencia SOS con la prioridad de Configuración (CRÍTICA por defecto). Tiene su propio límite por persona y no cuenta para el límite general. |
 | PUT | `/:id` | 🔒 operador, admin | Actualiza título, descripción y ubicación. |
 | PATCH | `/:id/status` | 🔒 personal, operador, admin | Cambia el estado y escribe el historial. |
 | PATCH | `/:id/priority` | 🔒 operador, admin | Cambia la prioridad. |
 | POST | `/:id/assign` | 🔒 operador, admin | Asigna uno o varios responsables. |
 | DELETE | `/:id/assign/:assignmentId` | 🔒 operador, admin | Retira una asignación. |
 | POST | `/:id/comments` | 🔒 personal, operador, admin | Registra un avance en el historial. |
-| POST | `/:id/photos` | 🔒 ciudadano, personal | Añade fotografías. |
+| POST | `/:id/photos` | 🔒 ciudadano, personal | Añade fotografías (hasta el máximo de Configuración). |
+| GET | `/:id/messages` · POST | 🔒 personal, operador, admin | Chat entre el centro de control y el personal asignado. |
+
+Las rutas de las fotos y notas de voz (`photos[].file_path`) salen **firmadas**:
+`/uploads/emergencies/<archivo>?exp=<unix>&sig=<firma>`. Solo las recibe quien
+puede ver la emergencia y caducan en unas horas; sin firma, o con la firma
+alterada o vencida, `/uploads` responde **403**. El archivo se guarda en
+PostgreSQL (`STORAGE_PROVIDER=database`, por defecto) o en disco (`local`).
 | GET | `/:id/history` | 🔒 según rol | Línea de tiempo de la emergencia. |
 | DELETE | `/:id` | 🔒 admin | Elimina (baja lógica). |
 
@@ -97,6 +104,9 @@
 | GET | `/unread-count` | Contador para el badge. |
 | PATCH | `/:id/read` | Marca una como leída. |
 | PATCH | `/read-all` | Marca todas como leídas. |
+| GET | `/push-key` | Clave pública VAPID (o `enabled: false` si el push está apagado). |
+| POST · DELETE | `/subscribe` | Registra o da de baja este navegador. Solo se aceptan endpoints HTTPS de servicios push reales (Google, Mozilla, Microsoft, Apple); la baja solo afecta a suscripciones propias. |
+| POST | `/test` | Envía un push de prueba a los dispositivos del usuario. |
 
 ## Auditoría — `/api/audit`
 
@@ -109,10 +119,14 @@
 | Método | Ruta | Acceso |
 |--------|------|--------|
 | GET | `/` | 🔒 admin |
-| PUT | `/` | 🔒 admin |
+| PUT | `/` | 🔒 admin — recibe `{ clave: valor }`; valida tipo y rango de cada opción y rechaza el lote entero con 422 si alguna no es válida |
+
+Las opciones se aplican de inmediato: centro y zoom del mapa, ciudad, prioridad
+del SOS, máximo de fotos (sin pasar `MAX_FILES_PER_EMERGENCY`) y el envío push.
 
 ## Salud del sistema
 
 | Método | Ruta | Acceso | Descripción |
 |--------|------|--------|-------------|
-| GET | `/api/health` | 🔓 | Estado del servidor y de la conexión a PostgreSQL. |
+| GET | `/api/health` | 🔓 | Estado del servidor y de la conexión a PostgreSQL. No cuenta para el límite de peticiones. |
+| GET | `/api/config` | 🔓 | Parámetros públicos: mapa, límites de subida y si el push está activo. |

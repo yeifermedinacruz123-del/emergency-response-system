@@ -4,9 +4,11 @@
  * Comprueban propiedades de seguridad contra el sistema en ejecución, no la
  * presencia de código. Cada bloque corresponde a un riesgo concreto.
  *
- * IMPORTANTE: este archivo agota a propósito el limitador de intentos, así que
- * debe ejecutarse DESPUÉS de la prueba funcional, o reiniciando el servidor
- * entre ambas (el contador vive en memoria).
+ * La sección del limitador agota a propósito los intentos de una cuenta que
+ * no existe. El bloqueo es por cuenta, así que ninguna cuenta real queda
+ * bloqueada y las otras suites pueden correr después. Sigue siendo buena
+ * costumbre ejecutarla la última: el tope por IP de /auth es compartido (el
+ * contador vive en memoria y se limpia al reiniciar el servidor).
  */
 
 'use strict';
@@ -239,14 +241,105 @@ async function main() {
   });
   check('El administrador no puede desactivarse a si mismo', autoDesactivar.status === 400);
 
-  console.log('\n===== 8. LIMITADOR DE INTENTOS =====');
-  console.log('  (esta prueba agota el limitador: debe ir la ultima)');
+  console.log('\n===== 8. SUSCRIPCIONES PUSH =====');
+
+  /*
+   * El servidor hace un POST a la URL de cada suscripcion cuando envia un
+   * aviso. Si aceptara cualquier URL, un usuario podria apuntarla a la red
+   * interna y usar el servidor para llegar a donde el no puede (SSRF).
+   */
+  const pushKeys = { p256dh: 'BExamplePublicKeyForTesting000000000000000000', auth: 'authSecret000000' };
+  const internas = [
+    'http://localhost:5432/',
+    'https://169.254.169.254/latest/meta-data/',
+    'https://fcm.googleapis.com.evil.example/push',
+    'ftp://fcm.googleapis.com/push',
+  ];
+  for (const endpoint of internas) {
+    const r = await call('POST', '/notifications/subscribe', {
+      token: citizen, body: { endpoint, keys: pushKeys },
+    });
+    check(`Push: se rechaza el endpoint ${endpoint}`, r.status === 400, `status ${r.status}`);
+  }
+
+  const fcmEndpoint = `https://fcm.googleapis.com/fcm/send/prueba-${Date.now()}`;
+  const valida = await call('POST', '/notifications/subscribe', {
+    token: citizen, body: { endpoint: fcmEndpoint, keys: pushKeys },
+  });
+  check('Push: se acepta un endpoint de un servicio real', valida.status === 201, `status ${valida.status}`);
+
+  const bajaAjena = await call('DELETE', '/notifications/subscribe', {
+    token: otraCiudadana, body: { endpoint: fcmEndpoint },
+  });
+  check('Push: nadie puede dar de baja el dispositivo de otro',
+    bajaAjena.body?.data?.removed === false, JSON.stringify(bajaAjena.body?.data));
+
+  const bajaPropia = await call('DELETE', '/notifications/subscribe', {
+    token: citizen, body: { endpoint: fcmEndpoint },
+  });
+  check('Push: el dueño si puede darse de baja', bajaPropia.body?.data?.removed === true,
+    JSON.stringify(bajaPropia.body?.data));
+
+  console.log('\n===== 9. ARCHIVOS SUBIDOS =====');
+
+  const sinFirma = await fetch('http://localhost:4000/uploads/emergencies/ers-1700000000000-0123456789abcdef0123456789abcdef.jpg');
+  check('/uploads no es una carpeta publica: sin firma -> 403', sinFirma.status === 403,
+    `status ${sinFirma.status}`);
+  const recorrido = await fetch('http://localhost:4000/uploads/emergencies/..%2F..%2F.env');
+  check('/uploads no permite salir de la carpeta', [400, 403, 404].includes(recorrido.status),
+    `status ${recorrido.status}`);
+
+  console.log('\n===== 10. LIMITE GENERAL DE PETICIONES =====');
+
+  /*
+   * El cupo general es por usuario (y por IP para quien no tiene sesion).
+   * Antes era solo por IP: agotado por cualquiera, dejaba sin servicio a toda
+   * la red, y como se aplicaba antes que el limitador propio del SOS, un SOS
+   * recibia 429 aunque el diseño decia que eso no podia pasar.
+   */
+  // Una cuenta creada solo para esto: agotar el cupo de una cuenta de la
+  // demostracion la dejaria inservible durante 15 minutos.
+  const sello = Date.now();
+  await call('POST', '/users', {
+    token: admin,
+    body: {
+      firstName: 'Cupo', lastName: 'Agotado', email: `cupo.${sello}@example.com`,
+      documentNumber: `C${sello}`.slice(0, 20), password: PASSWORD, role: 'CIUDADANO',
+    },
+  });
+  const agotadora = await login(`cupo.${sello}@example.com`);
+
+  let agotado = 0;
+  for (let i = 1; i <= 2000; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    const r = await call('GET', '/catalogs/types', { token: agotadora });
+    if (r.status === 429) { agotado = i; break; }
+  }
+  check('El limite general se aplica (cupo agotado)', agotado > 0, `429 tras ${agotado} peticiones`);
+
+  const sosConCupoAgotado = await call('POST', '/emergencies/sos', {
+    token: agotadora, body: { latitude: 4.1333, longitude: -73.6111 },
+  });
+  check('Con el cupo general agotado, el SOS sigue funcionando', sosConCupoAgotado.status === 201,
+    `status ${sosConCupoAgotado.status}`);
+
+  const otroUsuario = await call('GET', '/catalogs/types', { token: citizen });
+  check('El cupo agotado de un usuario no bloquea a los demas', otroUsuario.status === 200,
+    `status ${otroUsuario.status}`);
+
+  const salud = await fetch('http://localhost:4000/api/health');
+  check('/api/health no cuenta para el limite', salud.status !== 429, `status ${salud.status}`);
+
+  console.log('\n===== 11. LIMITADOR DE INTENTOS =====');
+  console.log('  (agota el limitador de una cuenta inexistente, no el de las reales)');
 
   const conIpFalsa = [];
   for (let i = 1; i <= 8; i += 1) {
     const r = await call('POST', '/auth/login', {
       headers: { 'X-Forwarded-For': `10.0.0.${i}` },
-      body: { email: 'admin@ers.gov.co', password: `claveIncorrecta${i}` },
+      // Una cuenta inexistente: el limitador cuenta igual (no revela si el
+      // correo existe) y ninguna cuenta real queda bloqueada tras la prueba.
+      body: { email: 'fuerza.bruta@ers.gov.co', password: `claveIncorrecta${i}` },
     });
     conIpFalsa.push(r.status);
   }
@@ -256,10 +349,10 @@ async function main() {
     bloqueados > 0, `respuestas: ${conIpFalsa.join(', ')}`);
 
   /*
-   * No se comprueba en qué intento exacto bloquea: el contador es compartido
-   * por todo /api/auth y el refresco fallido de la sección 5 ya consumió uno.
-   * Lo que importa es que deje pasar algunos y acabe bloqueando, no el número
-   * concreto, que depende de qué se haya probado antes.
+   * No se comprueba en qué intento exacto bloquea: además del límite por
+   * cuenta hay un tope por IP para todo /api/auth, y lo que se haya probado
+   * antes cuenta para él. Lo que importa es que deje pasar algunos y acabe
+   * bloqueando, no el número concreto.
    */
   check('Deja pasar los primeros intentos y luego bloquea',
     conIpFalsa[0] === 401 && bloqueados > 0,
@@ -268,6 +361,16 @@ async function main() {
   check('Una vez bloqueado, sigue bloqueando',
     conIpFalsa[conIpFalsa.length - 1] === 429,
     `ultimo: ${conIpFalsa[conIpFalsa.length - 1]}`);
+
+  /*
+   * El bloqueo es por cuenta, no por IP: si no, los fallos de una persona
+   * dejarian sin acceso a todos los que comparten su red (un salon de clase).
+   */
+  const otraCuenta = await call('POST', '/auth/login', {
+    body: { email: 'operador1@ers.gov.co', password: PASSWORD },
+  });
+  check('Los fallos de una cuenta no bloquean a otra desde la misma IP',
+    otraCuenta.status === 200, `status ${otraCuenta.status}`);
 
   console.log('\n==================================================');
   console.log(`  SEGURIDAD:  ${passed} correctas,  ${failed} fallidas`);

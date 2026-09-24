@@ -423,7 +423,7 @@ INSERT INTO system_settings (key, value, data_type, description, updated_by) VAL
   ('map.zoom',                 '13',                        'number',  'Zoom inicial del mapa.',                         1),
   ('sos.auto_priority',        'CRITICA',                   'string',  'Prioridad asignada automaticamente a un SOS.',   1),
   ('emergency.max_photos',     '5',                         'number',  'Maximo de fotografias por emergencia.',          1),
-  ('notifications.push_enabled','false',                    'boolean', 'Envio de notificaciones push (requiere FCM).',   1);
+  ('notifications.push_enabled','true',                     'boolean', 'Envio de notificaciones push (Web Push; requiere las claves VAPID del servidor).', 1);
 
 -- -----------------------------------------------------------------------------
 --  11. SECUENCIAS
