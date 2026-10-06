@@ -1,0 +1,29 @@
+<article class="probe" [class.is-critical]="priority === 'CRITICA'">
+  <header class="probe__head">
+    <div>
+      <p class="probe__code">ERS-DEMO-001 · Incendio estructural</p>
+      <p class="probe__title">Componente &lt;ers-hook-probe&gt;</p>
+    </div>
+    <ers-badge kind="priority" [code]="priority" [label]="'Prioridad ' + priorityLabel[priority]" />
+  </header>
+
+  <div class="probe__note">
+    <span class="probe__label">Contenido proyectado (ng-content):</span>
+    <ng-content />
+  </div>
+
+  <div class="probe__row">
+    <span class="probe__label">Unidades (&#64;Input units):</span>
+    @for (unit of units; track $index) {
+      <span class="chip">{{ unit }}</span>
+    } @empty {
+      <span class="muted">ninguna</span>
+    }
+  </div>
+
+  <div class="probe__row">
+    <span class="probe__label">Estado interno:</span>
+    {{ minutes }} min desde el reporte
+    <button type="button" class="btn btn--ghost btn--sm" (click)="addMinute()">+1 min (evento interno)</button>
+  </div>
+</article>

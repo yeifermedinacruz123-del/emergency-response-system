@@ -1,0 +1,76 @@
+<header class="page-head">
+  <p class="eyebrow">Angular · Ciclo de vida de los componentes</p>
+  <h1 class="page-title">Ciclos de vida (lifecycle hooks)</h1>
+  <p class="muted lead">
+    Un <strong>hook</strong> es un método que Angular llama solo en un momento preciso de la vida de un
+    componente: cuando se crea, cuando cambian sus datos, cuando se pinta y cuando se destruye. Pulsa los
+    botones y mira, en orden, qué hooks ejecuta Angular. También quedan en la consola del navegador (F12).
+  </p>
+</header>
+
+<div class="lab">
+  <ers-card heading="Laboratorio" subheading="El componente de prueba implementa los 8 hooks">
+    <div class="controls" role="group" aria-label="Acciones del laboratorio">
+      <button type="button" class="btn btn--primary btn--sm" (click)="toggleMount()">
+        {{ mounted() ? 'Desmontar componente' : 'Montar componente' }}
+      </button>
+      <button type="button" class="btn btn--ghost btn--sm" [disabled]="!mounted()" (click)="changePriority()">Cambiar prioridad (&#64;Input)</button>
+      <button type="button" class="btn btn--ghost btn--sm" [disabled]="!mounted()" (click)="addUnit()">Asignar unidad (push al arreglo)</button>
+      <button type="button" class="btn btn--ghost btn--sm" [disabled]="!mounted()" (click)="changeNote()">Cambiar nota (ng-content)</button>
+    </div>
+
+    <ers-lab-stage
+      [mounted]="mounted()"
+      [priority]="priority()"
+      [units]="units"
+      [note]="note()"
+      [tick]="tick()"
+      (internal)="internalEvent()"
+    />
+
+    <p class="tip">
+      El botón «+1 min» de la tarjeta es un evento <em>interno</em>: no cambia ningún &#64;Input, así que
+      no hay ngOnChanges, pero sí ngDoCheck y las revisiones de contenido y vista.
+    </p>
+  </ers-card>
+
+  <ers-card heading="Hooks ejecutados" [subheading]="'Acción: ' + action()">
+    <button card-action type="button" class="btn btn--ghost btn--sm" (click)="clear()">Limpiar</button>
+    <label class="check">
+      <input type="checkbox" name="clearEachTime" [(ngModel)]="clearEachTime" />
+      Limpiar el registro en cada acción
+    </label>
+    <ers-hook-timeline source="lab" order="oldest" [limit]="40" />
+  </ers-card>
+</div>
+
+<ers-card heading="Los 8 hooks y dónde los usa el ERS" subheading="Cada uno resuelve un problema real del centro de control" class="reference">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Hook</th>
+          <th scope="col">Cuándo lo llama Angular</th>
+          <th scope="col">Para qué se usa en el ERS</th>
+          <th scope="col">Archivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (hook of hooks; track hook.n) {
+          <tr>
+            <td class="n">{{ hook.n }}</td>
+            <td><code>{{ hook.name }}</code></td>
+            <td>{{ hook.when }}</td>
+            <td>{{ hook.where }}</td>
+            <td><code class="file">{{ hook.file }}</code></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="tip">
+    Abre «Hooks en vivo» (botón azul de abajo a la derecha) y navega por Dashboard, Emergencias y un
+    detalle: verás estos mismos hooks ejecutándose en los componentes reales.
+  </p>
+</ers-card>

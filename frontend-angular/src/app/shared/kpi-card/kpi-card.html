@@ -1,0 +1,14 @@
+<article [class]="'kpi kpi--' + tone" [class.is-pulsing]="pulsing()">
+  <p class="kpi__label">{{ label }}</p>
+  <p class="kpi__value">
+    {{ value }}
+    @if (delta() !== 0) {
+      <span class="kpi__delta" [class.is-good]="(delta() > 0) === upIsGood" aria-hidden="true">
+        {{ delta() > 0 ? '▲' : '▼' }} {{ delta() > 0 ? '+' : '' }}{{ delta() }}
+      </span>
+    }
+  </p>
+  @if (hint) {
+    <p class="kpi__hint">{{ hint }}</p>
+  }
+</article>

@@ -25,7 +25,7 @@ de una cuenta que crea para eso. Los limitadores son por cuenta/usuario, asi que
 ya no envenena a las otras suites, pero el tope por IP de /auth es compartido y
 vive **en memoria del proceso**. El orden recomendado es:
 
-1. `npm run test:api`        (109)
+1. `npm run test:api`        (114)
 2. `npm run test:realtime`   (51)
 3. `npm run test:security`   (56)  <- mejor de ultimo
 

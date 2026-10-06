@@ -1,0 +1,91 @@
+<header class="page-head">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="muted">Estado de Villavicencio en tiempo real. Los indicadores cambian solos cuando llega un evento.</p>
+  </div>
+</header>
+
+@if (error()) {
+  <p class="alert alert--error" role="alert">{{ error() }}</p>
+}
+
+@if (counters(); as c) {
+  <section class="kpis" aria-label="Indicadores">
+    <ers-kpi-card label="Activas" [value]="c.activas" tone="info" hint="Pendientes + en proceso" />
+    <ers-kpi-card label="SOS activas" [value]="c.sos_activas" tone="danger" hint="Botón de pánico" />
+    <ers-kpi-card label="Pendientes" [value]="c.pendientes" tone="warning" hint="Sin atender" />
+    <ers-kpi-card label="En proceso" [value]="c.en_proceso" tone="info" hint="Con unidad trabajando" />
+    <ers-kpi-card
+      label="Unidades disponibles"
+      [value]="c.personal_disponible"
+      tone="success"
+      [upIsGood]="true"
+      [hint]="'de ' + c.personal_total + ' unidades'"
+    />
+    <ers-kpi-card label="Resueltas" [value]="c.resueltas" tone="success" [upIsGood]="true" hint="Histórico" />
+  </section>
+} @else if (loading()) {
+  <p class="muted">Cargando indicadores…</p>
+}
+
+<div class="grid">
+  <ers-card heading="Emergencias activas" subheading="Ordenadas por prioridad" class="grid__main">
+    <a card-action class="btn btn--ghost btn--sm" routerLink="/emergencias">Ver todas</a>
+    @if (active().length === 0 && !loading()) {
+      <p class="muted">No hay emergencias activas.</p>
+    } @else {
+      <ul class="list">
+        @for (item of active(); track item.id) {
+          <li>
+            <button type="button" class="row" [class.is-sos]="item.is_sos" (click)="open(item)">
+              <span class="row__icon" aria-hidden="true">{{ item.type_icon }}</span>
+              <span class="row__main">
+                <span class="row__title">{{ item.title }}</span>
+                <span class="row__meta">{{ item.code }} · {{ item.zone_name || 'Sin zona' }} · {{ timeAgo(item.reported_at) }}</span>
+              </span>
+              <span class="row__badges">
+                @if (item.is_sos) {
+                  <ers-badge kind="sos" label="SOS" />
+                }
+                <ers-badge kind="priority" [code]="item.priority_code" [label]="item.priority_name" />
+                <ers-badge kind="status" [code]="item.status_code" [label]="item.status_name" />
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </ers-card>
+
+  <div class="grid__side">
+    <ers-card heading="Eventos en vivo" subheading="Lo que llega por el WebSocket">
+      @if (feed().length === 0) {
+        <p class="muted">Esperando eventos. Envía un SOS desde la app del ciudadano para verlo aquí.</p>
+      } @else {
+        <ol class="feed" aria-live="polite">
+          @for (item of feed(); track item.id) {
+            <li class="feed__item" [class.is-sos]="item.sos">
+              <time>{{ formatTime(item.at) }}</time>
+              <span>{{ item.text }}</span>
+            </li>
+          }
+        </ol>
+      }
+    </ers-card>
+
+    <ers-card heading="Unidades" [subheading]="units().length + ' registradas'">
+      <ul class="units">
+        @for (unit of units(); track unit.id) {
+          <li class="unit">
+            <span class="unit__dot" [class]="'unit__dot unit__dot--' + unit.status" aria-hidden="true"></span>
+            <span class="unit__main">
+              <strong>{{ unit.unit_code }}</strong> {{ unit.unit_name }}
+              <span class="unit__meta">{{ unitType[unit.responder_type] || unit.responder_type }} · {{ unit.full_name }}</span>
+            </span>
+            <span class="unit__status">{{ unitStatus[unit.status] || unit.status }}</span>
+          </li>
+        }
+      </ul>
+    </ers-card>
+  </div>
+</div>

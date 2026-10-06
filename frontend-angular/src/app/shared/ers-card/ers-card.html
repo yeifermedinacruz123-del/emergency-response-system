@@ -1,0 +1,20 @@
+<section class="card">
+  @if (heading || actionCount() > 0) {
+    <header class="card__header">
+      <div class="card__titles">
+        @if (heading) {
+          <h2 class="card__title">{{ heading }}</h2>
+        }
+        @if (subheading) {
+          <p class="card__subtitle">{{ subheading }}</p>
+        }
+      </div>
+      <div class="card__actions" [hidden]="actionCount() === 0">
+        <ng-content select="[card-action]" />
+      </div>
+    </header>
+  }
+  <div class="card__body">
+    <ng-content />
+  </div>
+</section>

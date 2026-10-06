@@ -23,6 +23,8 @@ const MENU = [
       { label: 'Dashboard', icon: '📊', route: ROUTES.dashboard, roles: [ROLES.OPERADOR, ROLES.ADMINISTRADOR] },
       { label: 'Emergencias', icon: '🚨', route: ROUTES.emergencies, roles: [] },
       { label: 'Mapa', icon: '🗺️', route: ROUTES.map, roles: [ROLES.OPERADOR, ROLES.ADMINISTRADOR] },
+      // Version en Angular del centro de control (frontend-angular/). Comparte la sesion.
+      { label: 'Centro de control (Angular)', icon: '🅰️', route: '/angular/', roles: [ROLES.OPERADOR, ROLES.ADMINISTRADOR] },
     ],
   },
   {

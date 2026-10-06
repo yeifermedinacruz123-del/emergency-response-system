@@ -1,0 +1,63 @@
+:host {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.messages {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  height: 280px;
+  overflow-y: auto;
+  padding: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.msg {
+  max-width: 85%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.msg.is-mine {
+  justify-self: end;
+  background: var(--info-bg);
+}
+
+.msg__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.msg__head strong {
+  color: var(--text-strong);
+}
+
+.msg__head span,
+.msg__head time {
+  color: var(--text-muted);
+}
+
+.msg__text {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  margin: auto;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.composer {
+  display: flex;
+  gap: var(--space-2);
+}

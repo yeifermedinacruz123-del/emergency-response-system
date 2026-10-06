@@ -1,0 +1,30 @@
+<button
+  type="button"
+  class="fab"
+  (click)="toggle()"
+  [attr.aria-expanded]="open()"
+  aria-controls="hooks-drawer"
+>
+  <span aria-hidden="true">⟳</span> Hooks en vivo
+  @if (count() > 0) {
+    <span class="fab__count">{{ count() }}</span>
+  }
+</button>
+
+@if (open()) {
+  <aside id="hooks-drawer" class="drawer" aria-label="Registro de hooks del ciclo de vida">
+    <header class="drawer__header">
+      <div>
+        <h2 class="drawer__title">Hooks en vivo</h2>
+        <p class="drawer__hint">Lo que Angular ejecuta mientras usas el sistema. El más reciente arriba.</p>
+      </div>
+      <div class="drawer__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="clear()">Limpiar</button>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="toggle()" aria-label="Cerrar registro">✕</button>
+      </div>
+    </header>
+    <div class="drawer__body">
+      <ers-hook-timeline source="app" />
+    </div>
+  </aside>
+}

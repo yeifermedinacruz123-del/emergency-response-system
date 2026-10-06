@@ -1,0 +1,228 @@
+/* ==========================================================================
+   variables.css - Sistema de diseno (design tokens)
+   Emergency Response System
+
+   Toda la interfaz usa estas variables. Cambiar un color aqui lo cambia en
+   todo el sistema: no se escriben colores sueltos en el resto del CSS.
+   ========================================================================== */
+
+:root {
+  /* ---------- Marca institucional ---------- */
+  --brand-900: #0b1220;
+  --brand-800: #101a2e;
+  --brand-700: #16233d;
+  --brand-600: #1d2f52;
+  --brand-500: #274270;
+  --brand-400: #3a5c94;
+  --brand-300: #6a8cc0;
+
+  --accent-600: #b91c1c;
+  --accent-500: #dc2626;
+  --accent-400: #ef4444;
+  --accent-300: #f87171;
+  --accent-soft: rgba(220, 38, 38, 0.12);
+
+  /* ---------- Superficies ---------- */
+  --surface-app: #f4f6fa;
+  --surface-card: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef1f7;
+  --surface-inverse: var(--brand-800);
+  --surface-overlay: rgba(11, 18, 32, 0.55);
+
+  /* ---------- Texto ----------
+     muted y subtle se oscurecieron para cumplir WCAG AA (4.5:1): los
+     anteriores (#64748b y #94a3b8) daban 4.2:1 y 2.6:1 sobre las superficies
+     del sistema, y la auditoria con axe los marcaba en todas las pantallas. */
+  --text-strong: #0f172a;
+  --text-base: #1f2937;
+  --text-muted: #526074;
+  --text-subtle: #5b6779;
+  --text-inverse: #f8fafc;
+  --text-on-accent: #ffffff;
+
+  /* Enlaces y elementos activos (legible en claro y en oscuro). */
+  --link: var(--brand-500);
+  --link-hover: var(--brand-400);
+
+  /* ---------- Bordes ---------- */
+  --border-soft: #e2e8f0;
+  --border-base: #cbd5e1;
+  --border-strong: #94a3b8;
+
+  /* ---------- Estados de una emergencia ---------- */
+  --status-pendiente: #f59e0b;
+  --status-pendiente-bg: #fef3c7;
+  --status-proceso: #2563eb;
+  --status-proceso-bg: #dbeafe;
+  --status-resuelto: #16a34a;
+  --status-resuelto-bg: #dcfce7;
+  --status-cancelado: #64748b;
+  --status-cancelado-bg: #e2e8f0;
+
+  /* ---------- Prioridades ---------- */
+  --priority-baja: #0ea5e9;
+  --priority-baja-bg: #e0f2fe;
+  --priority-media: #f59e0b;
+  --priority-media-bg: #fef3c7;
+  --priority-alta: #ea580c;
+  --priority-alta-bg: #ffedd5;
+  --priority-critica: #dc2626;
+  --priority-critica-bg: #fee2e2;
+
+  /* ---------- Semanticos ---------- */
+  --success: #15803d;
+  --success-bg: #dcfce7;
+  --warning: #f59e0b;
+  --warning-bg: #fef3c7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --info: #2563eb;
+  --info-bg: #dbeafe;
+
+  /* ---------- Colores para TEXTO sobre su fondo tintado ----------
+     Los de arriba sirven de relleno (puntos, bordes, botones). Como color de
+     letra no alcanzaban el contraste minimo: el ambar de "Pendiente" sobre su
+     fondo daba 1.9:1. Estas variantes pasan de 4.5:1 en ambos temas. */
+  --success-text: #166534;
+  --warning-text: #92400e;
+  --danger-text: #b91c1c;
+  --info-text: #1d4ed8;
+  --status-pendiente-text: var(--warning-text);
+  --status-proceso-text: var(--info-text);
+  --status-resuelto-text: var(--success-text);
+  --status-cancelado-text: #475569;
+  --priority-baja-text: #0369a1;
+  --priority-media-text: var(--warning-text);
+  --priority-alta-text: #9a3412;
+  --priority-critica-text: var(--danger-text);
+
+  /* ---------- Tipos de emergencia (marcadores y badges) ---------- */
+  --type-medica: #dc2626;
+  --type-transito: #f97316;
+  --type-incendio: #ea580c;
+  --type-seguridad: #2563eb;
+  --type-inundacion: #0891b2;
+  --type-desastre: #7c3aed;
+  --type-otra: #64748b;
+
+  /* ---------- Tipografia ---------- */
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Code", "Consolas", "SF Mono", Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base-size: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---------- Espaciado (escala de 4 px) ---------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ---------- Radios ---------- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+
+  /* ---------- Sombras ---------- */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12);
+  --shadow-focus: 0 0 0 3px rgba(58, 92, 148, 0.35);
+  --shadow-danger: 0 0 0 3px rgba(220, 38, 38, 0.3);
+
+  /* ---------- Transiciones ---------- */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 320ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---------- Layout ---------- */
+  --sidebar-width: 264px;
+  --sidebar-width-collapsed: 72px;
+  --navbar-height: 62px;
+  --content-max-width: 1600px;
+
+  /* ---------- Capas ---------- */
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-sidebar: 200;
+  --z-navbar: 300;
+  --z-dropdown: 400;
+  --z-overlay: 500;
+  --z-modal: 600;
+  --z-toast: 700;
+}
+
+/* ==========================================================================
+   Tema oscuro del centro de control.
+   Se activa con  <html data-theme="dark">  desde JavaScript.
+   ========================================================================== */
+[data-theme="dark"] {
+  --surface-app: #0b1220;
+  --surface-card: #131c2e;
+  --surface-raised: #18233a;
+  --surface-sunken: #0e1626;
+  --surface-overlay: rgba(0, 0, 0, 0.65);
+
+  --text-strong: #f1f5f9;
+  --text-base: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-subtle: #8b98ad;
+
+  /* El azul de marca (#274270) sobre fondo oscuro daba 1.7:1: los enlaces
+     y la pestaña activa de la PWA casi no se veian. */
+  --link: #8fb0e6;
+  --link-hover: #b3cbf2;
+
+  --success-text: #4ade80;
+  --warning-text: #fbbf24;
+  --danger-text: #fca5a5;
+  --info-text: #93c5fd;
+  --status-cancelado-text: #cbd5e1;
+  --priority-baja-text: #7dd3fc;
+  --priority-alta-text: #fdba74;
+
+  --border-soft: #1e293b;
+  --border-base: #334155;
+  --border-strong: #475569;
+
+  --status-pendiente-bg: rgba(245, 158, 11, 0.16);
+  --status-proceso-bg: rgba(37, 99, 235, 0.18);
+  --status-resuelto-bg: rgba(22, 163, 74, 0.18);
+  --status-cancelado-bg: rgba(100, 116, 139, 0.18);
+
+  --priority-baja-bg: rgba(14, 165, 233, 0.16);
+  --priority-media-bg: rgba(245, 158, 11, 0.16);
+  --priority-alta-bg: rgba(234, 88, 12, 0.16);
+  --priority-critica-bg: rgba(220, 38, 38, 0.2);
+
+  --success-bg: rgba(22, 163, 74, 0.16);
+  --warning-bg: rgba(245, 158, 11, 0.16);
+  --danger-bg: rgba(220, 38, 38, 0.18);
+  --info-bg: rgba(37, 99, 235, 0.18);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
+}

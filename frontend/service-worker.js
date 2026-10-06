@@ -29,7 +29,7 @@
 
 // v8: las teselas cambian de URL y se descartan las guardadas con la imagen
 // "Access blocked" de OpenStreetMap (llegaban con estado 200 y se cacheaban).
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const SHELL_CACHE = `ers-shell-${CACHE_VERSION}`;
 const API_CACHE = `ers-api-${CACHE_VERSION}`;
 const TILE_CACHE = `ers-tiles-${CACHE_VERSION}`;
@@ -266,6 +266,11 @@ self.addEventListener('fetch', (event) => {
 
   // Solo se toca el propio origen a partir de aqui.
   if (url.origin !== self.location.origin) return;
+
+  // El modulo Angular (/angular/) no es parte de la PWA: va siempre a la red.
+  // Si se guardara su index.html, tras una publicacion podria pedir archivos
+  // compilados que ya no existen en el servidor.
+  if (url.pathname === '/angular' || url.pathname.startsWith('/angular/')) return;
 
   // API.
   if (url.pathname.startsWith('/api/')) {

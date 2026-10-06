@@ -1,0 +1,60 @@
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" routerLink="/dashboard" aria-label="Inicio del centro de control">
+      <span class="brand__logo" aria-hidden="true">ERS</span>
+      <span class="brand__text">
+        <span class="brand__name">Centro de control</span>
+        <span class="brand__tag">Angular</span>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="Secciones">
+      @for (link of links; track link.path) {
+        <a
+          class="nav__link"
+          [routerLink]="link.path"
+          routerLinkActive="is-active"
+          ariaCurrentWhenActive="page"
+        >{{ link.label }}</a>
+      }
+    </nav>
+
+    <div class="topbar__end">
+      <span class="live" [class]="'live live--' + connection()" role="status">
+        <span class="live__dot" aria-hidden="true"></span>{{ connectionLabel() }}
+      </span>
+      <button
+        type="button"
+        class="icon-btn"
+        (click)="toggleTheme()"
+        [attr.aria-label]="dark() ? 'Usar tema claro' : 'Usar tema oscuro'"
+      >{{ dark() ? '☀' : '☾' }}</button>
+      <span class="user">
+        <span class="user__name">{{ session.user()?.full_name }}</span>
+        <span class="user__role">{{ session.user()?.role_name }}</span>
+      </span>
+      <a class="btn btn--ghost btn--sm" href="/pages/dashboard.html">Panel clásico</a>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="logout()">Salir</button>
+    </div>
+  </div>
+</header>
+
+@if (sos(); as alert) {
+  <div class="sos-bar" role="alert">
+    <p class="alert alert--sos">
+      <span>🚨 SOS activado: {{ alert.code }} · {{ alert.zone_name || 'ubicación por GPS' }}</span>
+      <span class="sos-bar__actions">
+        <a class="btn btn--sm sos-bar__link" [routerLink]="['/emergencias', alert.id]" (click)="dismissSos()">Atender</a>
+        <button type="button" class="btn btn--sm sos-bar__close" (click)="dismissSos()" aria-label="Cerrar aviso">✕</button>
+      </span>
+    </p>
+  </div>
+}
+
+<main id="contenido" class="content" tabindex="-1">
+  <router-outlet />
+</main>
+
+<ers-hooks-panel />

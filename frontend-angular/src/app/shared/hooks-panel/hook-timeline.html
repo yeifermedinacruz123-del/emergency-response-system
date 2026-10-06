@@ -1,0 +1,18 @@
+@if (events().length === 0) {
+  <p class="empty">Todavía no se ha ejecutado ningún hook. Navega por el módulo o usa los botones del laboratorio.</p>
+} @else {
+  <ol class="timeline" aria-live="polite">
+    @for (event of events(); track event.seq) {
+      <li class="timeline__item">
+        <span class="hook" [class]="'hook hook--' + step(event.hook)">
+          <span class="hook__n">{{ step(event.hook) }}</span>{{ event.hook }}
+        </span>
+        <span class="timeline__component">{{ event.component }}</span>
+        @if (event.detail) {
+          <span class="timeline__detail">{{ event.detail }}</span>
+        }
+        <time class="timeline__time">{{ time(event.at) }}</time>
+      </li>
+    }
+  </ol>
+}

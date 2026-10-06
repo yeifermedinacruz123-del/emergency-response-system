@@ -1,0 +1,35 @@
+<header class="page-head">
+  <h1 class="page-title">Mapa en vivo</h1>
+  <p class="muted">Emergencias activas (relleno de color según la prioridad) y unidades (aro de color según su estado).</p>
+</header>
+
+@if (error()) {
+  <p class="alert alert--error" role="alert">{{ error() }}</p>
+}
+
+@if (data(); as d) {
+  <ers-card
+    [heading]="d.emergencies.length + ' emergencias activas · ' + d.responders.length + ' unidades'"
+    [subheading]="sosCount() + ' SOS activos. Toca un marcador para ver el detalle.'"
+  >
+    <ers-map-view
+      [markers]="markers()"
+      [center]="d.center"
+      [zoom]="d.zoom"
+      height="min(68vh, 640px)"
+      trace="MapView (mapa general)"
+      label="Mapa de emergencias activas y unidades de Villavicencio"
+      (markerClick)="open($event)"
+    />
+    <ul class="legend" aria-label="Convenciones">
+      <li><span class="dot" style="background: var(--priority-critica)"></span>Crítica</li>
+      <li><span class="dot" style="background: var(--priority-alta)"></span>Alta</li>
+      <li><span class="dot" style="background: var(--priority-media)"></span>Media</li>
+      <li><span class="dot" style="background: var(--priority-baja)"></span>Baja</li>
+      <li><span class="ring" style="border-color: #15803d"></span>Unidad disponible</li>
+      <li><span class="ring" style="border-color: #d97706"></span>Unidad ocupada</li>
+    </ul>
+  </ers-card>
+} @else if (!error()) {
+  <p class="muted">Cargando mapa…</p>
+}

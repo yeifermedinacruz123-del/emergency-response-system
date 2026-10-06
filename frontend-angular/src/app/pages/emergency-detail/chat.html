@@ -1,0 +1,29 @@
+<div #scroller class="messages" tabindex="0" aria-label="Mensajes del chat" aria-live="polite">
+  @for (message of messages; track message.id) {
+    <article class="msg" [class.is-mine]="message.sender_id === currentUserId">
+      <header class="msg__head">
+        <strong>{{ message.sender_name }}</strong>
+        <span>{{ roleLabel[message.sender_role_code] || message.sender_role_code }}</span>
+        <time>{{ formatTime(message.created_at) }}</time>
+      </header>
+      <p class="msg__text">{{ message.message }}</p>
+    </article>
+  } @empty {
+    <p class="empty">Aún no hay mensajes. Escribe para coordinar con la unidad asignada.</p>
+  }
+</div>
+
+<form class="composer" (ngSubmit)="submit()">
+  <label class="sr-only" for="chat-input">Mensaje</label>
+  <input
+    id="chat-input"
+    class="input"
+    name="draft"
+    autocomplete="off"
+    maxlength="1000"
+    placeholder="Escribe a la unidad…"
+    [(ngModel)]="draft"
+    [disabled]="disabled"
+  />
+  <button type="submit" class="btn btn--primary" [disabled]="disabled || sending || !draft.trim()">Enviar</button>
+</form>

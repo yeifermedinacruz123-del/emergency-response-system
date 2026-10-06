@@ -1,0 +1,59 @@
+.page-head {
+  margin-bottom: var(--space-5);
+}
+
+.page-title {
+  margin: 0 0 var(--space-1);
+  font-size: 1.5rem;
+}
+
+.page-head p {
+  margin: 0;
+}
+
+code {
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.filters .field {
+  min-width: 170px;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  font-weight: var(--weight-semibold);
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-500);
+}
+
+.is-loading {
+  opacity: 0.6;
+  transition: opacity var(--transition-base);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}

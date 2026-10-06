@@ -1,0 +1,55 @@
+@let enVivo = live();
+<!-- Leer live() aqui hace que la pagina se revise cada vez que llega algo por el socket;
+     al revisarse, Angular ejecuta el ngDoCheck de la tabla. -->
+
+<header class="page-head">
+  <h1 class="page-title">Emergencias</h1>
+  <p class="muted">
+    Las que llegan en vivo aparecen arriba resaltadas: las detecta el <code>ngDoCheck</code> de la tabla.
+  </p>
+</header>
+
+<ers-card [heading]="(meta()?.total ?? 0) + ' emergencias'" [subheading]="enVivo > 0 ? enVivo + ' cambio(s) recibidos en vivo' : 'Filtra por estado, prioridad o SOS'">
+  <form class="filters" (ngSubmit)="applyFilters()" aria-label="Filtros">
+    <div class="field">
+      <label for="f-status">Estado</label>
+      <select id="f-status" class="select" name="status" [(ngModel)]="status" (change)="applyFilters()">
+        <option value="">Todos</option>
+        @for (option of statuses; track option.code) {
+          <option [value]="option.code">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-priority">Prioridad</label>
+      <select id="f-priority" class="select" name="priority" [(ngModel)]="priority" (change)="applyFilters()">
+        <option value="">Todas</option>
+        @for (option of priorities; track option.code) {
+          <option [value]="option.code">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+    <label class="check">
+      <input type="checkbox" name="sos" [(ngModel)]="sosOnly" (change)="applyFilters()" />
+      Solo SOS
+    </label>
+  </form>
+
+  @if (error()) {
+    <p class="alert alert--error" role="alert">{{ error() }}</p>
+  }
+
+  <div [class.is-loading]="loading()">
+    <ers-emergency-table [rows]="rows" (select)="open($event)" />
+  </div>
+
+  @if (meta(); as m) {
+    @if (m.totalPages > 1) {
+      <nav class="pager" aria-label="Paginación">
+        <button type="button" class="btn btn--ghost btn--sm" [disabled]="!m.hasPreviousPage" (click)="goTo(page - 1)">← Anterior</button>
+        <span class="muted">Página {{ m.page }} de {{ m.totalPages }}</span>
+        <button type="button" class="btn btn--ghost btn--sm" [disabled]="!m.hasNextPage" (click)="goTo(page + 1)">Siguiente →</button>
+      </nav>
+    }
+  }
+</ers-card>

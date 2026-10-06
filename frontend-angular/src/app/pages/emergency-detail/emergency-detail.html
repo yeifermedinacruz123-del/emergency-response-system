@@ -1,0 +1,171 @@
+<a class="back" routerLink="/emergencias">← Emergencias</a>
+
+@if (emergency(); as e) {
+  <header class="head">
+    <div class="head__main">
+      <p class="head__code">{{ e.code }} · {{ e.type_icon }} {{ e.type_name }}</p>
+      <h1 class="head__title">{{ e.title }}</h1>
+      <p class="muted">Reportada {{ timeAgo(e.reported_at) }} ({{ formatDateTime(e.reported_at) }}) por {{ e.reporter_name }}</p>
+    </div>
+    <div class="head__badges">
+      @if (e.is_sos) {
+        <ers-badge kind="sos" label="SOS" />
+      }
+      <ers-badge kind="priority" [code]="e.priority_code" [label]="'Prioridad ' + e.priority_name" />
+      <ers-badge kind="status" [code]="e.status_code" [label]="e.status_name" />
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="alert alert--error" role="alert">{{ error() }}</p>
+  }
+  @if (notice()) {
+    <p class="alert alert--info" role="status">{{ notice() }}</p>
+  }
+
+  <div class="layout">
+    <div class="layout__main">
+      <ers-card
+        heading="Atención"
+        trace="Acciones"
+        [subheading]="e.status_is_final ? 'Emergencia cerrada: ya no tiene acciones' : 'Lo que el centro de control puede hacer ahora'"
+      >
+        <!-- Estos botones se proyectan en la tarjeta. Cuando la emergencia se cierra
+             desaparecen, y la tarjeta se entera en su ngAfterContentChecked. -->
+        @if (e.status_code === 'PENDIENTE') {
+          <button card-action type="button" class="btn btn--primary btn--sm" [disabled]="busy()" (click)="setStatus('EN_PROCESO')">Marcar en proceso</button>
+        }
+        @if (e.status_code === 'EN_PROCESO') {
+          <button card-action type="button" class="btn btn--success btn--sm" [disabled]="busy()" (click)="openPanel('resolve')">Resolver</button>
+        }
+        <!-- Un @if por boton: con dos nodos dentro del mismo @if, Angular no
+             podria proyectarlos en la ranura [card-action] (aviso NG8011). -->
+        @if (!e.status_is_final) {
+          <button card-action type="button" class="btn btn--ghost btn--sm" [disabled]="busy()" (click)="openPanel('assign')">Asignar unidad</button>
+        }
+        @if (!e.status_is_final) {
+          <button card-action type="button" class="btn btn--ghost btn--sm" [disabled]="busy()" (click)="openPanel('cancel')">Cancelar</button>
+        }
+
+        @switch (panel()) {
+          @case ('assign') {
+            <form class="panel" (ngSubmit)="assign()">
+              <fieldset>
+                <legend>Unidades disponibles</legend>
+                @for (unit of units(); track unit.id) {
+                  <label class="unit-option">
+                    <input type="checkbox" [checked]="selectedUnits.includes(unit.id)" (change)="toggleUnit(unit.id, $any($event.target).checked)" />
+                    <strong>{{ unit.unit_code }}</strong> {{ unit.unit_name }}
+                    <span class="muted">· {{ unitType[unit.responder_type] || unit.responder_type }} · {{ unit.full_name }}</span>
+                  </label>
+                } @empty {
+                  <p class="muted">No hay unidades disponibles en este momento.</p>
+                }
+              </fieldset>
+              <div class="panel__actions">
+                <button type="submit" class="btn btn--primary btn--sm" [disabled]="busy() || units().length === 0">Asignar</button>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="openPanel('assign')">Cerrar</button>
+              </div>
+            </form>
+          }
+          @case ('resolve') {
+            <form class="panel" (ngSubmit)="setStatus('RESUELTO')">
+              <div class="field">
+                <label for="notes">Notas de cierre (opcional)</label>
+                <textarea id="notes" class="textarea" name="notes" rows="2" maxlength="1000" [(ngModel)]="notes"></textarea>
+              </div>
+              <div class="panel__actions">
+                <button type="submit" class="btn btn--success btn--sm" [disabled]="busy()">Confirmar resolución</button>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="openPanel('resolve')">Cerrar</button>
+              </div>
+            </form>
+          }
+          @case ('cancel') {
+            <form class="panel" (ngSubmit)="setStatus('CANCELADO')">
+              <div class="field">
+                <label for="reason">Motivo de la cancelación</label>
+                <textarea id="reason" class="textarea" name="reason" rows="2" maxlength="1000" required [(ngModel)]="reason"></textarea>
+              </div>
+              <div class="panel__actions">
+                <button type="submit" class="btn btn--danger btn--sm" [disabled]="busy() || !reason.trim()">Cancelar emergencia</button>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="openPanel('cancel')">Cerrar</button>
+              </div>
+            </form>
+          }
+        }
+
+        <dl class="facts">
+          <div><dt>Zona</dt><dd>{{ e.zone_name || '—' }}</dd></div>
+          <div><dt>Dirección</dt><dd>{{ e.address || '—' }}</dd></div>
+          <div><dt>Referencia</dt><dd>{{ e.reference || '—' }}</dd></div>
+          <div><dt>Coordenadas</dt><dd>{{ e.latitude }}, {{ e.longitude }}{{ e.accuracy_m ? ' (±' + e.accuracy_m + ' m)' : '' }}</dd></div>
+          <div><dt>Ciudadano</dt><dd>{{ e.reporter_name }} · {{ e.reporter_phone }}</dd></div>
+          <div><dt>Descripción</dt><dd>{{ e.description || '—' }}</dd></div>
+        </dl>
+      </ers-card>
+
+      <ers-card heading="Ubicación">
+        <!-- @for con un solo elemento: si cambia el id se destruye el mapa y se crea
+             otro (ngOnDestroy + ngAfterViewInit), centrado en la nueva emergencia. -->
+        @for (current of [e]; track current.id) {
+          <ers-map-view [markers]="markers()" height="320px" trace="MapView (detalle)" [label]="'Ubicación de ' + e.code" />
+        }
+      </ers-card>
+
+      @if (e.photos.length > 0) {
+        <ers-card heading="Fotografías" [subheading]="e.photos.length + ' enviadas por el ciudadano'">
+          <div class="photos">
+            @for (photo of e.photos; track photo.id) {
+              <a [href]="photo.file_path" target="_blank" rel="noopener">
+                <img [src]="photo.file_path" [alt]="'Fotografía de ' + e.code" loading="lazy" />
+              </a>
+            }
+          </div>
+        </ers-card>
+      }
+    </div>
+
+    <div class="layout__side">
+      <ers-card heading="Chat con la unidad">
+        <ers-chat
+          [messages]="messages()"
+          [currentUserId]="session.user()?.id ?? null"
+          [sending]="busy()"
+          [disabled]="e.status_is_final"
+          (send)="sendMessage($event)"
+        />
+      </ers-card>
+
+      <ers-card heading="Unidades asignadas">
+        @for (assignment of e.assignments; track assignment.id) {
+          <p class="assignment">
+            <strong>{{ assignment.unit_code }}</strong> {{ assignment.unit_name }}
+            <span class="muted">· {{ assignment.responder_name }} · {{ assignment.status }}</span>
+          </p>
+        } @empty {
+          <p class="muted">Ninguna todavía.</p>
+        }
+      </ers-card>
+
+      <ers-card heading="Historial">
+        <ol class="history">
+          @for (item of e.history; track item.id) {
+            <li>
+              <span class="history__dot" [style.background]="item.status_color || 'var(--border-strong)'" aria-hidden="true"></span>
+              <div>
+                <p class="history__text">{{ item.description || item.action }}</p>
+                <p class="history__meta">{{ formatDateTime(item.created_at) }} · {{ item.user_name || 'Sistema' }}</p>
+              </div>
+            </li>
+          }
+        </ol>
+      </ers-card>
+    </div>
+  </div>
+} @else {
+  @if (error()) {
+    <p class="alert alert--error" role="alert">{{ error() }}</p>
+  } @else {
+    <p class="muted">Cargando emergencia…</p>
+  }
+}

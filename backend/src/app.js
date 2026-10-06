@@ -237,6 +237,19 @@ if (config.frontend.serve) {
     })
   );
 
+  /*
+   * Modulo Angular (fuente en frontend-angular/, compilado en frontend/angular/).
+   * Sus rutas internas (/angular/emergencias/7) las resuelve el router de
+   * Angular en el navegador: no son archivos, asi que todas devuelven su
+   * index.html. Va antes de la regla general, que mandaria la pagina de estado.
+   */
+  app.get(/^\/angular(\/.*)?$/, (req, res, next) => {
+    if (path.extname(req.path)) return next();
+    return res.sendFile(path.join(frontendPath, 'angular', 'index.html'), (error) => {
+      if (error) next();
+    });
+  });
+
   // Cualquier ruta que no sea de la API y no sea un archivo devuelve index.html.
   app.get(/^\/(?!api|uploads).*/, (req, res, next) => {
     if (path.extname(req.path)) return next();

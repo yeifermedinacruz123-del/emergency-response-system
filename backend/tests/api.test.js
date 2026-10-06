@@ -495,6 +495,25 @@ async function main() {
   });
   check('La configuracion se restaura', restored.status === 200, `status ${restored.status}`);
 
+  console.log('\n===== 19. MODULO ANGULAR (/angular) =====');
+  const angularIndex = await fetch(`${ORIGIN}/angular/`);
+  const angularHtml = await angularIndex.text();
+  check('GET /angular/ -> index.html de Angular', angularIndex.status === 200 && angularHtml.includes('<app-root'),
+    `status ${angularIndex.status}`);
+  check('El index de Angular declara la base /angular/', angularHtml.includes('<base href="/angular/">'));
+
+  const deepLink = await fetch(`${ORIGIN}/angular/emergencias/1`);
+  check('Ruta interna de Angular (/angular/emergencias/1) -> su index.html',
+    deepLink.status === 200 && (await deepLink.text()).includes('<app-root'), `status ${deepLink.status}`);
+
+  const bundle = angularHtml.match(/src="(main-[\w-]+\.js)"/)?.[1];
+  const bundleRes = bundle ? await fetch(`${ORIGIN}/angular/${bundle}`) : null;
+  check('El JavaScript compilado de Angular se sirve',
+    bundleRes?.status === 200 && /javascript/.test(bundleRes.headers.get('content-type') || ''), bundle || 'sin bundle');
+
+  const missing = await fetch(`${ORIGIN}/angular/no-existe.js`);
+  check('Un archivo que no existe en /angular -> 404 (no el index)', missing.status === 404, `status ${missing.status}`);
+
   console.log('\n==================================================');
   console.log(`  RESULTADO:  ${passed} correctas,  ${failed} fallidas`);
   if (failures.length > 0) {

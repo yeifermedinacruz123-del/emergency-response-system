@@ -7,7 +7,7 @@
 Plataforma **web + móvil (PWA)** para el reporte, despacho y seguimiento de
 emergencias en tiempo real.
 
-`HTML5` · `CSS3` · `JavaScript ES6+` · `Node.js` · `Express` · `PostgreSQL` · `Socket.IO` · `Leaflet` · `Chart.js`
+`HTML5` · `CSS3` · `JavaScript ES6+` · `Angular 22` · `Node.js` · `Express` · `PostgreSQL` · `Socket.IO` · `Leaflet` · `Chart.js`
 
 **Proyecto final — Web y Sistemas Móviles — 2026-2**
 
@@ -70,6 +70,17 @@ operador.
 > El frontend se edita directamente en VS Code: `.html` para la estructura,
 > `.css` para el diseño y `.js` para la lógica. No hay build ni transpilación.
 
+### Módulo de centro de control — **Angular 22**
+
+| Tecnología | Uso |
+|------------|-----|
+| Angular 22 (componentes standalone, signals, sin zone.js) | Centro de control en `/angular/`. |
+| Los 8 lifecycle hooks | Cada uno aplicado a un problema real (ver la sección del módulo Angular). |
+| TypeScript 6 | Tipos de todos los datos de la API. |
+| HttpClient + interceptor | Pone el token y lo renueva si caduca. |
+| Router con carga perezosa | Cada pantalla se descarga solo al entrar en ella. |
+| Vitest | Pruebas unitarias de los componentes (`ng test`). |
+
 ### Backend
 
 | Tecnología | Uso |
@@ -121,12 +132,19 @@ proyecto final/
 │   ├── scripts/
 │   │   ├── db-local.js           PostgreSQL sin instalador (initdb + pg_ctl)
 │   │   └── run-sql.js            ejecuta .sql sin necesitar psql
-│   ├── tests/                    216 comprobaciones
-│   │   ├── api.test.js           109 · API REST
+│   ├── tests/                    221 comprobaciones
+│   │   ├── api.test.js           114 · API REST
 │   │   ├── realtime.test.js      51 · Socket.IO
 │   │   └── security.test.js      56 · seguridad
 │   ├── uploads/emergencies/      fotografías si STORAGE_PROVIDER=local
 │   └── Dockerfile
+│
+├── frontend-angular/             módulo Angular 22 (código fuente)
+│   └── src/app/
+│       ├── core/                 sesión · API · tiempo real · registro de hooks
+│       ├── shared/               ErsCard · KpiCard · MapView · Badge · Hooks en vivo
+│       └── pages/                login · shell · dashboard · emergencias ·
+│                                 detalle + chat · mapa · ciclos de vida
 │
 ├── frontend/                     22 HTML · 12 CSS · 36 JS
 │   ├── index.html                estado del sistema y avance
@@ -146,6 +164,7 @@ proyecto final/
 │   │                             notificaciones · auditoría · configuración
 │   ├── app/                      PWA: inicio · reportar · mis reportes ·
 │   │                             seguimiento · avisos · sin conexión
+│   ├── angular/                  módulo Angular compilado (npm run ng:build)
 │   ├── vendor/                   Leaflet y Chart.js alojados localmente
 │   └── assets/icons/             iconos de la PWA
 │
@@ -271,6 +290,10 @@ Abre <http://localhost:4000>.
 | `npm run db:schema` | Crea tablas, índices, vistas y triggers. |
 | `npm run db:seed` | Carga los datos de demostración. |
 | `npm run check` | Verifica la sintaxis del backend. |
+| `npm run ng:install` | Instala las dependencias del módulo Angular. |
+| `npm run ng:dev` | Módulo Angular en modo desarrollo (`http://localhost:4200`). |
+| `npm run ng:build` | Compila el módulo Angular a `frontend/angular/`. |
+| `npm run ng:test` | Pruebas unitarias del módulo Angular (Vitest). |
 | `npm run docker:up` / `docker:down` | Alternativa con Docker, si lo tienes instalado. |
 
 ---
@@ -680,6 +703,58 @@ devuelva.
 
 ---
 
+## 🅰️ Módulo Angular: centro de control y ciclos de vida
+
+Además del panel clásico (HTML + CSS + JavaScript sin frameworks), el sistema
+tiene un **centro de control hecho en Angular 22** en `/angular/`. Usa la misma
+API, la misma base de datos, el mismo WebSocket y **la misma sesión**: quien
+entra a uno entra al otro. El panel clásico lo enlaza en su menú como
+«Centro de control (Angular)».
+
+| Pantalla | Ruta | Qué hace |
+|----------|------|----------|
+| Acceso | `/angular/login` | Solo operadores y administradores. |
+| Dashboard | `/angular/dashboard` | Indicadores, emergencias activas, unidades y eventos del socket en vivo. |
+| Emergencias | `/angular/emergencias` | Lista con filtros; las que llegan por el socket aparecen resaltadas. |
+| Detalle | `/angular/emergencias/:id` | Mapa, acciones (en proceso, resolver, asignar, cancelar), chat, unidades e historial. |
+| Mapa | `/angular/mapa` | Emergencias activas y unidades en Leaflet. |
+| Ciclos de vida | `/angular/ciclos-de-vida` | Laboratorio con los 8 hooks y la tabla de dónde los usa el sistema. |
+
+### Los 8 hooks del ciclo de vida, aplicados
+
+Cada hook resuelve un problema real del centro de control. El botón
+**«Hooks en vivo»** muestra en pantalla cada hook a medida que Angular lo
+ejecuta (también quedan en la consola, como en la demo vista en clase).
+
+| # | Hook | Dónde | Para qué |
+|---|------|-------|----------|
+| 1 | `ngOnChanges` | `KpiCard`, `MapView`, `EmergencyDetail` | Muestra cuánto cambió un indicador (▲ +1); redibuja marcadores; cambia de sala del socket cuando cambia el `:id` de la ruta. |
+| 2 | `ngOnInit` | `Shell` y las páginas | Abre el WebSocket; carga datos de la API y se suscribe a los eventos. |
+| 3 | `ngDoCheck` | `EmergencyTable` | Un `IterableDiffer` detecta las filas que llegan al **mismo** arreglo, cosa que `ngOnChanges` no ve. |
+| 4 | `ngAfterContentInit` | `ErsCard` | Cuenta los botones que el padre proyecta con `<ng-content>`. |
+| 5 | `ngAfterContentChecked` | `ErsCard` | Se entera cuando esos botones desaparecen (al cerrar una emergencia). |
+| 6 | `ngAfterViewInit` | `MapView` | Crea el mapa Leaflet sobre el `<div>` que ya existe en el DOM. |
+| 7 | `ngAfterViewChecked` | `Chat` | Baja el scroll al último mensaje después de pintarlo. |
+| 8 | `ngOnDestroy` | `Shell`, `EmergencyDetail`, `MapView`, páginas | Cierra el socket, sale de la sala, ejecuta `map.remove()` y cancela suscripciones. |
+
+### Cómo se trabaja
+
+```powershell
+npm run ng:install   # la primera vez: dependencias de frontend-angular/
+npm run ng:dev       # servidor de desarrollo en http://localhost:4200 (con el backend en el 4000)
+npm run ng:build     # compila a frontend/angular/, que es lo que sirve Express
+npm run ng:test      # 11 pruebas unitarias (Vitest)
+```
+
+El código fuente está en `frontend-angular/` y el compilado en
+`frontend/angular/`. El compilado **se sube al repositorio** a propósito: así
+Render lo publica sin instalar Angular. Después de cambiar algo en
+`frontend-angular/` hay que correr `npm run ng:build` antes de subir.
+
+📄 Detalle completo en [`documentation/08-ANGULAR-CICLOS-DE-VIDA.md`](documentation/08-ANGULAR-CICLOS-DE-VIDA.md).
+
+---
+
 ## 📊 Estadísticas
 
 `pages/statistics.html` — siete gráficos con **Chart.js 4**, alojado en el
@@ -876,17 +951,18 @@ piezas aisladas. Requieren la base de datos y el servidor levantados.
 
 ```bash
 npm test              # API REST + tiempo real
-npm run test:api      # 109 comprobaciones
+npm run test:api      # 114 comprobaciones
 npm run test:realtime # 51 comprobaciones
 npm run test:security # 56 comprobaciones
 ```
 
 | Suite | Comprobaciones | Qué cubre |
 |-------|:--------------:|-----------|
-| `tests/api.test.js` | 109 | Autenticación, los 4 roles, validación, SOS, asignaciones, transiciones, estadísticas, mapa, notificaciones, usuarios, auditoría, sesiones, fotos con enlace firmado y configuración que se aplica. |
+| `tests/api.test.js` | 114 | Autenticación, los 4 roles, validación, SOS, asignaciones, transiciones, estadísticas, mapa, notificaciones, usuarios, auditoría, sesiones, fotos con enlace firmado, configuración que se aplica y el módulo Angular servido en `/angular/`. |
 | `tests/realtime.test.js` | 51 | Cuatro clientes simultáneos con roles distintos; verifica que cada evento llegue **solo** a sus destinatarios, y que la sesión se recupere tras un corte de red. |
 | `tests/security.test.js` | 56 | Cabeceras, contraseñas, autorización, aislamiento, tokens falsificados, inyección SQL, suscripciones push (SSRF), archivos sin firma y limitadores. |
-| **Total** | **216** | |
+| **Total** | **221** | |
+| `frontend-angular` (`npm run ng:test`) | 11 | Pruebas unitarias: orden de los 8 hooks, `ngOnChanges` de KpiCard, `ngDoCheck` de la tabla, contenido proyectado de ErsCard y sesión compartida. |
 
 > `test:security` agota a propósito el límite de una cuenta **inexistente** y
 > el de una cuenta que crea para eso, así que ya no deja bloqueada ninguna cuenta
@@ -964,6 +1040,7 @@ Detalle en [`documentation/04-PLAN-DE-FASES.md`](documentation/04-PLAN-DE-FASES.
 | [05 — API REST](documentation/05-API-REST.md) | Contrato completo de endpoints. |
 | [06 — Manual de usuario](documentation/06-MANUAL-USUARIO.md) | Guía práctica por rol: ciudadano, personal, operador y administrador. |
 | [07 — Verificación de la entrega](documentation/07-VERIFICACION-ENTREGA.md) | Qué se probó, cómo, qué se corrigió y qué queda por probar a mano. |
+| [08 — Angular y ciclos de vida](documentation/08-ANGULAR-CICLOS-DE-VIDA.md) | Módulo Angular del centro de control y los 8 lifecycle hooks aplicados. |
 
 ### Entregables académicos
 

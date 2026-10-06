@@ -57,3 +57,6 @@ coverage/
 
 # ---- Certificado HTTPS local (se regenera con: npm run cert) ----
 backend/certs/
+
+# ---- Caches de herramientas de diseno (no son parte del proyecto) ----
+**/.impeccable/

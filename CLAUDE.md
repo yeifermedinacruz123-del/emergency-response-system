@@ -6,10 +6,14 @@ recoge las trampas que no son evidentes leyendo el codigo.
 
 ## Reglas duras
 
-1. **El frontend es vanilla y no se negocia.** HTML + CSS + JS ES6 puro en
-   `frontend/`. Sin React, Vue, Svelte, bundlers ni paso de build. Es requisito
-   del curso. Las librerias de terceros (Leaflet, Chart.js) viven copiadas a
-   mano en `frontend/vendor/`.
+1. **El panel clasico y la PWA son vanilla y no se negocia.** HTML + CSS + JS
+   ES6 puro en `frontend/`. Sin React, Vue, Svelte, bundlers ni paso de build.
+   Las librerias de terceros (Leaflet, Chart.js) viven copiadas a mano en
+   `frontend/vendor/`. **Unica excepcion:** `frontend-angular/`, un modulo
+   Angular 22 del centro de control que pidio el curso el 5-oct-2026 para
+   aplicar los ciclos de vida (hooks). Se compila con `npm run ng:build` a
+   `frontend/angular/`, y ese compilado SI se sube (Render no instala Angular).
+   No migres el panel clasico a Angular ni metas Angular en `frontend/js/`.
 2. **No agregues dependencias** al backend sin que el usuario lo pida. El stack
    esta cerrado: express, pg, socket.io, jsonwebtoken, bcryptjs, helmet,
    express-rate-limit, express-validator, multer, nodemailer, exceljs, cors,
@@ -54,7 +58,8 @@ npm run test:realtime   # 2
 npm run test:security   # 3 -- mejor de ultimo
 ```
 
-Son 216 comprobaciones (109 + 51 + 56). `security.test.js` agota a proposito
+Son 221 comprobaciones (114 + 51 + 56), mas 11 pruebas unitarias del
+modulo Angular con `npm run ng:test` (Vitest, no necesita servidor). `security.test.js` agota a proposito
 el limite de una cuenta INEXISTENTE y el de una cuenta que crea para eso:
 desde el 23-sep-2026 los limitadores son por cuenta/usuario, asi que ya no
 envenena a las otras suites. Aun asi va de ultimo: el tope por IP de /auth es
